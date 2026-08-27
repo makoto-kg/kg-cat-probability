@@ -9,6 +9,7 @@ interface ControlPanelProps {
   runSingleText?: string;
   onRunBatch?: (trials: number) => void;
   onReset?: () => void;
+  resetText?: string;
   isRunning?: boolean;
   batchCounts?: number[];
   customControls?: React.ReactNode;
@@ -21,6 +22,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   runSingleText = "1回試す",
   onRunBatch,
   onReset,
+  resetText = "リセット",
   isRunning = false,
   batchCounts = [10, 100, 10000],
   customControls,
@@ -75,11 +77,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               whileTap={{ scale: 0.97 }}
               disabled={isRunning}
               onClick={onReset}
-              className="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-red-950/60 text-slate-400 hover:text-red-300 border border-slate-800 hover:border-red-800/40 text-xs font-bold flex items-center gap-1.5 transition-colors"
-              title="初期状態にリセットします"
+              className="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 hover:border-amber-400/60 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors shadow"
+              title={`${resetText}します`}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>リセット</span>
+              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+              <span>{resetText}</span>
             </motion.button>
           )}
         </div>

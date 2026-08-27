@@ -3,12 +3,11 @@
 import React, { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import {
-  simulateMontyHallSingle,
   runMontyHallSim,
   MontyHallBatchResult,
 } from "@/lib/simulations/monty-hall";
 import { ControlPanel } from "../lesson/ControlPanel";
-import { Sliders, HelpCircle, Sparkles, DoorClosed, BookOpen } from "lucide-react";
+import { Sliders, Sparkles, BookOpen } from "lucide-react";
 
 interface MontyHallVizProps {
   stepIndex: number;
@@ -65,14 +64,6 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
     setIsFinished(false);
   };
 
-  const handleRunSingleRandom = () => {
-    const single = simulateMontyHallSingle(numDoors, true);
-    setCarDoor(single.carDoor);
-    setSelectedDoor(single.initialChoice);
-    setRevealedDoors(single.revealedDoors);
-    setFinalChoice(single.finalChoice);
-    setIsFinished(true);
-  };
 
   const handleRunBatch = (trials: number) => {
     startTransition(() => {
@@ -238,9 +229,8 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
         )}
 
         <ControlPanel
-          onRunSingle={handleRunSingleRandom}
-          runSingleText="自動で1回試す"
           onReset={handleReset}
+          resetText="もう一度試す"
         />
       </motion.div>
     );
