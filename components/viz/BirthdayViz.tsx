@@ -252,8 +252,51 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
 
         <ControlPanel
           onRunSingle={handleRunSingle}
-          runSingleText="23人を新しく抽選する"
-          onReset={handleRunSingle}
+          runSingleText="もう一度抽選"
+          customControls={
+            <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-200">
+                  <Users className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>参加人数:</span>
+                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-mono font-black border border-amber-500/30">
+                    {numPeople} 人
+                  </span>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[10, 23, 40, 50].map((count) => (
+                    <button
+                      key={count}
+                      onClick={() => handleSliderChange(count)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                        numPeople === count
+                          ? "bg-amber-500 text-slate-950 shadow"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
+                      }`}
+                    >
+                      {count}人
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Range Slider */}
+              <div className="flex items-center gap-2 w-full">
+                <span className="text-xs text-slate-400 font-mono shrink-0">2人</span>
+                <input
+                  type="range"
+                  min={2}
+                  max={70}
+                  value={numPeople}
+                  onChange={(e) => handleSliderChange(Number(e.target.value))}
+                  className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-800 rounded-lg"
+                />
+                <span className="text-xs text-slate-400 font-mono shrink-0">70人</span>
+              </div>
+            </div>
+          }
         />
       </motion.div>
     );
