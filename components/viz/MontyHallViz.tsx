@@ -115,25 +115,46 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
 
   // STEP 1: 体験フェーズ (Experience) - ここで初めてゲーム画面が登場！
   if (stepIndex === 1) {
+    const isUserWinner = isFinished && finalChoice === carDoor;
+    const isUserLoser = isFinished && finalChoice !== null && finalChoice !== carDoor;
+
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col gap-5 w-full"
       >
-        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center">
-          <span className="text-amber-300 flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            ✨ 実験ステージが開放されました！
+        <div
+          className={`p-3 rounded-xl border text-xs font-bold flex justify-between items-center transition-all ${
+            !isFinished
+              ? "bg-slate-950/70 border-chalkboard-border text-slate-300"
+              : isUserWinner
+              ? "bg-emerald-950/90 border-emerald-500 text-emerald-200 shadow-lg"
+              : "bg-red-950/90 border-red-500 text-red-200 shadow-lg"
+          }`}
+        >
+          <span className="flex items-center gap-1.5 font-black">
+            {isFinished ? (
+              isUserWinner ? (
+                <span>🎉 おめでとうございます！ 大当たり（キャットタワー獲得）！</span>
+              ) : (
+                <span>😢 残念！ あなたが選んだ扉は【ハズレ（ヤギ）】でした……</span>
+              )
+            ) : (
+              <span className="text-amber-300 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                ✨ 実験ステージ
+              </span>
+            )}
           </span>
-          <span className="text-chalk-white">
+          <span className="font-mono">
             {selectedDoor === null
               ? "👇 好きな扉をクリックして選んでね"
               : !isFinished
               ? "司会者がハズレを開けました！ 変更しますか？"
-              : finalChoice === carDoor
-              ? "🎉 大当たり！"
-              : "🐐 ハズレ！"}
+              : isUserWinner
+              ? "【WIN】"
+              : "【LOSE】"}
           </span>
         </div>
 
@@ -146,6 +167,31 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
             const isWinner = carDoor === idx;
             const isOpen = isRevealed || (isFinished && (isWinner || isFinal));
 
+            // Determine specific styling based on outcome
+            let cardStyle =
+              "bg-gradient-to-b from-wood to-wood-dark border-amber-800 hover:border-amber-500";
+            if (isFinished) {
+              if (isFinal && isWinner) {
+                // User chose the winning door -> BIG GLOWING GREEN WIN
+                cardStyle =
+                  "bg-emerald-950/90 border-emerald-400 ring-4 ring-emerald-400/60 shadow-2xl scale-105";
+              } else if (isFinal && !isWinner) {
+                // User chose a losing door -> BIG RED X ERROR CARD
+                cardStyle =
+                  "bg-red-950/90 border-red-500 ring-4 ring-red-500/60 shadow-2xl scale-105";
+              } else if (isWinner) {
+                // Winning door that the user did NOT pick -> Dim helper
+                cardStyle = "bg-slate-900/80 border-slate-700 opacity-60";
+              } else {
+                // Other door opened by host
+                cardStyle = "bg-slate-950/50 border-slate-800 opacity-30";
+              }
+            } else if (isOpen) {
+              cardStyle = "bg-slate-900/60 border-slate-700 opacity-60";
+            } else if (isSelected) {
+              cardStyle = "bg-blue-600/30 border-blue-400 ring-4 ring-blue-500/30";
+            }
+
             return (
               <motion.button
                 key={idx}
@@ -153,32 +199,46 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
                 whileTap={{ scale: !isRevealed && !isFinished ? 0.95 : 1 }}
                 disabled={isRevealed || isFinished}
                 onClick={() => handleDoorClick(idx)}
-                className={`relative w-24 h-36 sm:w-28 sm:h-44 rounded-2xl border-2 flex flex-col items-center justify-between p-2 shadow-xl transition-all cursor-pointer ${
-                  isOpen
-                    ? isWinner
-                      ? "bg-amber-500/20 border-amber-400"
-                      : "bg-slate-900/60 border-slate-700 opacity-60"
-                    : isSelected
-                    ? "bg-blue-600/30 border-blue-400 ring-4 ring-blue-500/30"
-                    : "bg-gradient-to-b from-wood to-wood-dark border-amber-800 hover:border-amber-500"
-                }`}
+                className={`relative w-28 h-40 sm:w-32 sm:h-48 rounded-2xl border-2 flex flex-col items-center justify-between p-2.5 shadow-xl transition-all cursor-pointer ${cardStyle}`}
               >
-                <span className="text-xs font-black text-amber-200">ドア #{idx + 1}</span>
+                <span className="text-xs font-black text-amber-200">
+                  ドア #{idx + 1}
+                </span>
 
-                <div className="flex flex-col items-center justify-center flex-1">
+                {/* Center Content */}
+                <div className="flex flex-col items-center justify-center flex-1 w-full">
                   {isOpen ? (
-                    isWinner ? (
-                      <div className="text-center animate-bounce">
-                        <span className="text-3xl">🏰</span>
-                        <span className="text-[10px] font-black text-amber-300 block mt-1">
-                          当たり!
+                    isFinished && isFinal ? (
+                      isWinner ? (
+                        <div className="text-center animate-bounce">
+                          <span className="text-4xl">🏰</span>
+                          <span className="text-xs font-black text-emerald-300 block mt-1">
+                            🎉 大当たり！
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <span className="text-4xl font-black text-red-500 block leading-none animate-pulse">
+                            ✕
+                          </span>
+                          <span className="text-2xl mt-1 block">🐐</span>
+                          <span className="text-xs font-black text-red-300 block mt-0.5">
+                            ハズレ！
+                          </span>
+                        </div>
+                      )
+                    ) : isWinner ? (
+                      <div className="text-center opacity-75">
+                        <span className="text-2xl">🏰</span>
+                        <span className="text-[10px] font-bold text-amber-300 block mt-1">
+                          正解はここ
                         </span>
                       </div>
                     ) : (
-                      <div className="text-center">
-                        <span className="text-3xl">🐐</span>
+                      <div className="text-center opacity-50">
+                        <span className="text-2xl">🐐</span>
                         <span className="text-[10px] font-bold text-slate-400 block mt-1">
-                          ヤギ
+                          ヤギ (ハズレ)
                         </span>
                       </div>
                     )
@@ -187,16 +247,35 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
                   )}
                 </div>
 
-                <div className="text-[10px] font-bold">
+                {/* Bottom Badge */}
+                <div className="text-[10px] font-bold w-full text-center">
                   {isSelected && !isFinished && (
-                    <span className="text-blue-300 bg-blue-950/80 px-2 py-0.5 rounded-full border border-blue-700">
+                    <span className="text-blue-300 bg-blue-950/80 px-2 py-0.5 rounded-full border border-blue-700 block">
                       あなたの選択
                     </span>
                   )}
-                  {isRevealed && <span className="text-slate-400">ハズレ開示</span>}
+                  {isRevealed && !isFinished && (
+                    <span className="text-slate-400 block">司会者が開示</span>
+                  )}
                   {isFinished && isFinal && (
-                    <span className={isWinner ? "text-emerald-300 font-black" : "text-red-400"}>
-                      {isWinner ? "WIN!" : "LOSE"}
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-black block shadow-md ${
+                        isWinner
+                          ? "bg-emerald-600 text-white text-[11px]"
+                          : "bg-red-600 text-white text-[11px]"
+                      }`}
+                    >
+                      {isWinner ? "★ あなたの選択 (WIN!)" : "✕ あなたの選択 (LOSE)"}
+                    </span>
+                  )}
+                  {isFinished && !isFinal && isWinner && (
+                    <span className="text-[10px] text-amber-400/80 font-bold block">
+                      (当たり扉でした)
+                    </span>
+                  )}
+                  {isFinished && !isFinal && !isWinner && (
+                    <span className="text-[10px] text-slate-500 block">
+                      司会者が開示
                     </span>
                   )}
                 </div>
