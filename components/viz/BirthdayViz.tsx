@@ -158,7 +158,7 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
                   ? `【一致発見！】 ${collisionDates.map((c) => c.dateInfo.label).join("、 ")} が同じ誕生日！`
                   : `365日カレンダー抽選（参加: ${numPeople}人）`}
               </span>
-              <span className="text-[11px] text-slate-300">
+              <span className="text-xs sm:text-sm text-slate-300 block mt-0.5">
                 {singleTrial.hasCollision
                   ? `たった${numPeople}人集まっただけで、同じ誕生日のペアが出現しました！`
                   : `今回は偶然被りませんでした。「もう一度抽選」を押してみよう！`}
@@ -195,11 +195,11 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
                 }`}
               >
                 {/* Month Header */}
-                <div className="flex items-center justify-between pb-1 mb-1 border-b border-slate-800 text-[11px] font-bold">
-                  <span className={hasMonthCollision ? "text-pink-300" : "text-amber-300"}>
+                <div className="flex items-center justify-between pb-1 mb-1 border-b border-slate-800 text-xs font-bold">
+                  <span className={hasMonthCollision ? "text-pink-300 font-black" : "text-amber-300"}>
                     {m.name}
                   </span>
-                  <span className="text-[9px] text-slate-500 font-mono">
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-mono">
                     {m.daysCount}日
                   </span>
                 </div>
@@ -218,7 +218,7 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
                         title={`${m.month}月${dIdx + 1}日: ${
                           count > 0 ? `${count}人 (ID: ${occupants?.join(", ")})` : "空き"
                         }`}
-                        className={`aspect-square rounded-[3px] text-[8px] font-bold flex items-center justify-center transition-all ${
+                        className={`aspect-square rounded-[3px] text-[8px] sm:text-[9px] font-bold flex items-center justify-center transition-all ${
                           isCollision
                             ? "bg-pink-500 text-white ring-1 ring-white scale-125 z-10 animate-bounce"
                             : count === 1
@@ -237,16 +237,16 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
         </div>
 
         {/* Legend bar */}
-        <div className="flex items-center justify-around text-[10px] font-bold text-slate-300 bg-slate-900/60 p-2 rounded-xl border border-slate-800">
+        <div className="flex items-center justify-around text-xs font-bold text-slate-300 bg-slate-900/60 p-2 rounded-xl border border-slate-800">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-slate-800 inline-block" /> 空き日
           </span>
           <span className="flex items-center gap-1 text-amber-300">
-            <span className="w-2.5 h-2.5 rounded bg-amber-400 inline-block" /> 誕生日の生徒 (1人)
+            <span className="w-2.5 h-2.5 rounded bg-amber-400 inline-block" /> 誕生日の生徒
           </span>
           <span className="flex items-center gap-1 text-pink-300 font-black">
             <span className="w-2.5 h-2.5 rounded bg-pink-500 inline-block ring-1 ring-white" />
-            ★ 誕生日が一致したペア！
+            ★ 一致ペア！
           </span>
         </div>
 

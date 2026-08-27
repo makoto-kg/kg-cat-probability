@@ -114,9 +114,9 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
       <div className="flex flex-col gap-4 w-full">
         {/* Dice Selection */}
         <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl">
-          <div className="flex justify-between items-center text-xs font-bold text-slate-300 mb-2">
+          <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-300 mb-2">
             <span>先攻：あなたのサイコロを選んでね</span>
-            <span className="text-amber-400">カブ先生が後出しで対抗します</span>
+            <span className="text-amber-400">カブ先生が後出しで対抗</span>
           </div>
 
           <div className="grid grid-cols-4 gap-2">
@@ -124,19 +124,19 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
               <button
                 key={d}
                 onClick={() => handleSelectPlayerDie(d)}
-                className={`p-2 rounded-xl border text-center transition-all ${
+                className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all ${
                   playerDie === d
                     ? "border-pink-400 bg-pink-950/60 ring-2 ring-pink-500/40"
                     : "border-slate-800 bg-slate-900/60 hover:bg-slate-800"
                 }`}
               >
                 <div
-                  className="w-6 h-6 rounded mx-auto flex items-center justify-center font-bold text-xs text-white"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg mx-auto flex items-center justify-center font-black text-sm text-white shadow"
                   style={{ backgroundColor: DIE_COLORS[d].bg }}
                 >
                   {d}
                 </div>
-                <span className="text-[10px] text-slate-300 block mt-1">
+                <span className="text-xs font-bold text-slate-200 block mt-1">
                   {playerDie === d ? "選択中" : kabuDie === d ? "先生" : ""}
                 </span>
               </button>
@@ -148,9 +148,9 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
         <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-chalkboard-dark border border-chalkboard-border flex flex-col items-center gap-3">
           <div className="flex items-center justify-around w-full max-w-sm">
             <div className="text-center">
-              <span className="text-xs font-bold text-pink-300">あなた (先攻: {playerDie})</span>
+              <span className="text-xs sm:text-sm font-bold text-pink-300">あなた (先攻: {playerDie})</span>
               <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg mx-auto mt-1"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-lg mx-auto mt-1"
                 style={{ backgroundColor: DIE_COLORS[playerDie].bg }}
               >
                 {lastRoll ? lastRoll.playerVal : "?"}
@@ -160,9 +160,9 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
             <Swords className="w-6 h-6 text-amber-400 animate-pulse" />
 
             <div className="text-center">
-              <span className="text-xs font-bold text-amber-300">カブ先生 (後出し: {kabuDie})</span>
+              <span className="text-xs sm:text-sm font-bold text-amber-300">カブ先生 (後出し: {kabuDie})</span>
               <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg mx-auto mt-1"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-lg mx-auto mt-1"
                 style={{ backgroundColor: DIE_COLORS[kabuDie].bg }}
               >
                 {lastRoll ? lastRoll.kabuVal : "?"}

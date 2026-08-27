@@ -84,11 +84,11 @@ export const ParrondoViz: React.FC<ParrondoVizProps> = ({ stepIndex }) => {
             </h3>
           </div>
 
-          <div className="text-xs sm:text-sm text-slate-200 leading-relaxed space-y-3">
+          <div className="text-sm sm:text-base text-slate-200 leading-relaxed space-y-3">
             <p>
-              単独でプレイすると必ず資産が減っていく2つのギャンブル<strong>「負けゲームA」と「負けゲームB」</strong>があります。
+              コインの表裏で掛け金が増減する、2つの負けゲーム（AとB）があります。
             </p>
-            <div className="p-3 bg-chalkboard-dark rounded-xl border border-chalkboard-border text-chalk-yellow font-bold text-xs sm:text-sm space-y-1">
+            <div className="p-3.5 bg-chalkboard-dark rounded-xl border border-chalkboard-border text-chalk-yellow font-bold text-xs sm:text-sm space-y-1">
               <div>・ゲームA：勝率 49.5%（微小な不利コイン）</div>
               <div>・ゲームB：残高が3の倍数なら勝率10%、そうでなければ75%</div>
             </div>
@@ -108,22 +108,22 @@ export const ParrondoViz: React.FC<ParrondoVizProps> = ({ stepIndex }) => {
   if (stepIndex === 1) {
     return (
       <div className="flex flex-col gap-4 w-full">
-        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center">
+        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs sm:text-sm font-bold text-slate-300 flex justify-between items-center">
           <span>🎮 ゲームA・B単独のプレイ結果</span>
           <span className="text-red-400 font-bold">どちらもマイナス</span>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/60 text-center">
-            <span className="text-xs font-bold text-red-300">🔴 ゲームA単独</span>
+            <span className="text-xs sm:text-sm font-bold text-red-300">🔴 ゲームA単独</span>
             <span className="text-xl font-black text-red-400 font-mono mt-1 block">
               {simResult.finalCapital.A}
             </span>
-            <span className="text-[10px] text-slate-400 block mt-1">勝率 49.5%（微小な不利）</span>
+            <span className="text-xs text-slate-300 block mt-1">勝率 49.5%（微小な不利）</span>
           </div>
 
           <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-500/60 text-center">
-            <span className="text-xs font-bold text-blue-300">🔷 ゲームB単独</span>
+            <span className="text-xs sm:text-sm font-bold text-blue-300">🔷 ゲームB単独</span>
             <span className="text-xl font-black text-blue-400 font-mono mt-1 block">
               {simResult.finalCapital.B}
             </span>

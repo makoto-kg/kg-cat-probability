@@ -99,7 +99,7 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
           </div>
         </div>
 
-        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed">
+        <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs sm:text-sm text-slate-200 leading-relaxed">
           健康な猫が圧倒的多数（99.9%）を占めています。
           この健康な9,990匹にも「1%の確率で誤診（偽陽性）」が発生したらどうなるでしょうか？
         </div>
@@ -111,7 +111,7 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
   if (stepIndex === 2) {
     return (
       <div className="flex flex-col gap-4 w-full">
-        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center">
+        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs sm:text-sm font-bold text-slate-300 flex justify-between items-center">
           <span>⚡ 検査結果の4象限分類</span>
           <span className="text-amber-400 font-mono">
             陽性者合計: {breakdown.totalPositives} 匹
@@ -121,27 +121,27 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Top-Left: True Positive */}
           <div className="p-3.5 rounded-xl bg-red-950/40 border-2 border-red-500/60">
-            <div className="flex justify-between text-xs font-bold text-red-300">
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-red-300">
               <span>🔴 真陽性（病気＆陽性）</span>
               <span className="font-mono">{breakdown.truePositives} 匹</span>
             </div>
-            <p className="text-[11px] text-slate-300 mt-1">正しく発見された病気猫</p>
+            <p className="text-xs text-slate-300 mt-1">正しく発見された病気猫</p>
           </div>
 
           {/* Top-Right: False Positive */}
           <div className="p-3.5 rounded-xl bg-amber-950/60 border-2 border-amber-400 ring-2 ring-amber-400/40">
-            <div className="flex justify-between text-xs font-bold text-amber-300">
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-amber-300">
               <span>⚠️ 偽陽性（健康なのに陽性！）</span>
               <span className="font-mono font-black">{breakdown.falsePositives} 匹</span>
             </div>
-            <p className="text-[11px] text-amber-200 mt-1">
+            <p className="text-xs text-amber-200 mt-1 font-bold">
               健康な9,990匹の1%（真陽性の約10倍！）
             </p>
           </div>
 
           {/* Bottom-Left: False Negative */}
           <div className="p-3.5 rounded-xl bg-slate-900/40 border border-slate-800">
-            <div className="flex justify-between text-xs font-bold text-slate-400">
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-400">
               <span>⚪ 偽陰性（病気なのに陰性）</span>
               <span className="font-mono">{breakdown.falseNegatives} 匹</span>
             </div>
@@ -149,7 +149,7 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
 
           {/* Bottom-Right: True Negative */}
           <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-800/40">
-            <div className="flex justify-between text-xs font-bold text-emerald-400">
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-emerald-400">
               <span>🟢 真陰性（健康＆陰性）</span>
               <span className="font-mono">{breakdown.trueNegatives.toLocaleString()} 匹</span>
             </div>

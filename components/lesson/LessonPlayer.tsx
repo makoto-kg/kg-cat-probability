@@ -73,27 +73,27 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="text-xs sm:text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   {topic.category}
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">
+                <span className="text-xs sm:text-xs text-slate-400 font-medium">
                   難易度: {topic.difficulty}
                 </span>
               </div>
-              <h1 className="text-base sm:text-xl font-bold text-chalk-white mt-0.5">
+              <h1 className="text-lg sm:text-xl font-bold text-chalk-white mt-0.5">
                 {topic.title}
               </h1>
             </div>
           </div>
 
           <div className="hidden sm:block text-right">
-            <p className="text-xs text-slate-400 font-medium">{topic.subtitle}</p>
+            <p className="text-sm text-slate-400 font-medium">{topic.subtitle}</p>
           </div>
         </div>
       </header>
 
       {/* Main Lesson Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-5">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 flex flex-col gap-4 sm:gap-5">
         {/* Step Progress Indicator */}
         <StepIndicator
           currentStepIndex={currentStepIndex}
@@ -101,17 +101,17 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
         />
 
         {/* 2-Column Responsive Layout: Left = Stage Visualizer, Right = Dialogue & Avatars */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 flex-1 items-start">
           {/* Stage / Interactive Simulation Column (7 cols on desktop) */}
           <div className="lg:col-span-7 flex flex-col gap-4 order-2 lg:order-1">
-            <div className="rounded-3xl border-2 border-chalkboard-border bg-chalkboard p-4 sm:p-6 shadow-2xl relative overflow-hidden min-h-[460px] flex flex-col justify-between">
+            <div className="rounded-3xl border-2 border-chalkboard-border bg-chalkboard p-3.5 sm:p-6 shadow-2xl relative overflow-hidden min-h-[440px] flex flex-col justify-between">
               {/* Blackboard Header Chalk Label */}
               <div className="flex items-center justify-between pb-3 border-b border-chalkboard-border/70 mb-3">
-                <span className="text-xs font-bold text-chalk-yellow tracking-wider flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm font-bold text-chalk-yellow tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-chalk-yellow" />
                   {currentStep.title}
                 </span>
-                <span className="text-xs text-slate-400 font-medium">
+                <span className="text-xs sm:text-sm text-slate-400 font-medium">
                   {currentStepIndex === 0
                     ? "🤔 まずは直感で考えてみよう"
                     : currentStepIndex === 1
@@ -209,8 +209,8 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                     exit={{ opacity: 0, y: -10 }}
                     className="p-4 rounded-2xl bg-slate-900 border-2 border-amber-500/50 flex flex-col gap-3 shadow-lg"
                   >
-                    <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
-                      <HelpCircle className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-amber-300 font-bold text-sm sm:text-base">
+                      <HelpCircle className="w-4 h-4 shrink-0" />
                       <span>{currentStep.userPrompt.question}</span>
                     </div>
 
@@ -224,7 +224,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
                             setSelectedUserChoice(opt.value);
                             handleNextDialogue();
                           }}
-                          className="w-full text-left p-3 rounded-xl bg-chalkboard hover:bg-slate-800 border border-slate-700 hover:border-amber-400/80 text-chalk-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-between group shadow"
+                          className="w-full text-left p-3.5 rounded-xl bg-chalkboard hover:bg-slate-800 border border-slate-700 hover:border-amber-400/80 text-chalk-white text-sm font-semibold transition-all flex items-center justify-between group shadow"
                         >
                           <span>{opt.label}</span>
                           <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-400 transition-colors" />

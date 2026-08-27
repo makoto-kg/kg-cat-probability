@@ -62,7 +62,7 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                 )}
               </div>
               <span
-                className={`mt-1.5 text-[11px] sm:text-xs font-bold transition-colors ${
+                className={`mt-1.5 text-xs sm:text-sm font-bold transition-colors ${
                   isCurrent
                     ? "text-chalk-yellow font-black"
                     : isDone

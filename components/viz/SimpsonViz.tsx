@@ -71,13 +71,13 @@ export const SimpsonViz: React.FC<SimpsonVizProps> = ({ stepIndex }) => {
         </div>
 
         <div className="rounded-2xl bg-slate-950/60 border border-chalkboard-border overflow-hidden shadow">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-xs sm:text-sm border-collapse">
             <thead>
               <tr className="bg-chalkboard-dark text-slate-300 border-b border-chalkboard-border">
-                <th className="p-2.5 font-bold">学科</th>
-                <th className="p-2.5 font-bold text-blue-300">男性 合格率</th>
-                <th className="p-2.5 font-bold text-pink-300">女性 合格率</th>
-                <th className="p-2.5 font-bold text-slate-400">結果</th>
+                <th className="p-2 sm:p-3 font-bold">学科</th>
+                <th className="p-2 sm:p-3 font-bold text-blue-300">男 合格率</th>
+                <th className="p-2 sm:p-3 font-bold text-pink-300">女 合格率</th>
+                <th className="p-2 sm:p-3 font-bold text-slate-400">結果</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -85,22 +85,22 @@ export const SimpsonViz: React.FC<SimpsonVizProps> = ({ stepIndex }) => {
                 const femaleWins = dept.femaleRate > dept.maleRate;
                 return (
                   <tr key={dept.name} className="hover:bg-slate-900/40">
-                    <td className="p-2.5 font-bold text-chalk-yellow">学科 {dept.name}</td>
-                    <td className="p-2.5 font-mono text-blue-200">
-                      {dept.maleApplicants}人中 {(dept.maleRate * 100).toFixed(0)}%
+                    <td className="p-2 sm:p-3 font-bold text-chalk-yellow">学科 {dept.name}</td>
+                    <td className="p-2 sm:p-3 font-mono text-blue-200">
+                      {(dept.maleRate * 100).toFixed(0)}% <span className="text-[10px] sm:text-xs text-slate-400 font-normal">({dept.maleApplicants}人)</span>
                     </td>
-                    <td className="p-2.5 font-mono text-pink-200">
-                      {dept.femaleApplicants}人中 {(dept.femaleRate * 100).toFixed(0)}%
+                    <td className="p-2 sm:p-3 font-mono text-pink-200">
+                      {(dept.femaleRate * 100).toFixed(0)}% <span className="text-[10px] sm:text-xs text-slate-400 font-normal">({dept.femaleApplicants}人)</span>
                     </td>
-                    <td className="p-2.5">
+                    <td className="p-2 sm:p-3">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        className={`px-2 py-0.5 rounded-full text-xs font-bold border ${
                           femaleWins
                             ? "bg-pink-950/70 text-pink-300 border-pink-700"
                             : "bg-blue-950/70 text-blue-300 border-blue-700"
                         }`}
                       >
-                        {femaleWins ? "🌸 女性勝利" : "🔷 男性勝利"}
+                        {femaleWins ? "🌸 女性優勢" : "🔷 男性優勢"}
                       </span>
                     </td>
                   </tr>

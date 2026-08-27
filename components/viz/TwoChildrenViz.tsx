@@ -96,11 +96,11 @@ export const TwoChildrenViz: React.FC<TwoChildrenVizProps> = ({ stepIndex }) => 
             </h3>
           </div>
 
-          <div className="text-xs sm:text-sm text-slate-200 leading-relaxed space-y-3">
+          <div className="text-sm sm:text-base text-slate-200 leading-relaxed space-y-3">
             <p>
               子供が2人いる家庭があります。
             </p>
-            <div className="p-3 bg-chalkboard-dark rounded-xl border border-chalkboard-border text-chalk-yellow font-bold text-xs sm:text-sm space-y-2">
+            <div className="p-3.5 bg-chalkboard-dark rounded-xl border border-chalkboard-border text-chalk-yellow font-bold text-xs sm:text-sm space-y-2">
               <div>①「少なくとも1人は男の子」と知ったとき、2人とも男の子である確率は？</div>
               <div>② さらに「火曜日生まれの男の子がいる」と知ったとき、確率は変わる？</div>
             </div>
@@ -120,7 +120,7 @@ export const TwoChildrenViz: React.FC<TwoChildrenVizProps> = ({ stepIndex }) => 
   if (stepIndex === 1) {
     return (
       <div className="flex flex-col gap-4 w-full">
-        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center">
+        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs sm:text-sm font-bold text-slate-300 flex justify-between items-center">
           <span>🎮 標本空間 4マスの消し込み体験</span>
           <span className="text-amber-400 font-mono">
             残った3マス中 1マスが (男, 男) = 1/3
@@ -128,35 +128,35 @@ export const TwoChildrenViz: React.FC<TwoChildrenVizProps> = ({ stepIndex }) => 
         </div>
 
         <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto w-full p-2">
-          <div className="p-3 rounded-2xl bg-emerald-950/60 border-2 border-emerald-400 text-center">
-            <span className="text-xl block">👦👦</span>
-            <span className="text-xs font-black text-emerald-200 block mt-0.5">(男, 男)</span>
-            <span className="text-[9px] text-emerald-400 font-bold">★ 該当 (1/3)</span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-emerald-950/60 border-2 border-emerald-400 text-center">
+            <span className="text-2xl block">👦👦</span>
+            <span className="text-xs sm:text-sm font-black text-emerald-200 block mt-0.5">(男, 男)</span>
+            <span className="text-[10px] sm:text-xs text-emerald-400 font-bold">★ 該当 (1/3)</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-700 text-center">
-            <span className="text-xl block">👦👧</span>
-            <span className="text-xs font-bold text-slate-300 block mt-0.5">(男, 女)</span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900/80 border border-slate-700 text-center">
+            <span className="text-2xl block">👦👧</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-300 block mt-0.5">(男, 女)</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-700 text-center">
-            <span className="text-xl block">👧👦</span>
-            <span className="text-xs font-bold text-slate-300 block mt-0.5">(女, 男)</span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900/80 border border-slate-700 text-center">
+            <span className="text-2xl block">👧👦</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-300 block mt-0.5">(女, 男)</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-slate-950/40 border border-dashed border-red-500/40 text-center opacity-40">
-            <span className="text-xl block line-through">👧👧</span>
-            <span className="text-xs font-bold text-red-400 block mt-0.5">(女, 女) ✕除外</span>
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-950/40 border border-dashed border-red-500/40 text-center opacity-40">
+            <span className="text-2xl block line-through">👧👧</span>
+            <span className="text-xs sm:text-sm font-bold text-red-400 block mt-0.5">(女, 女) ✕除外</span>
           </div>
         </div>
 
         {lastFamily && (
-          <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs flex justify-between items-center">
+          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs sm:text-sm flex justify-between items-center font-bold">
             <span>
               抽出: {lastFamily.family.child1.gender === "B" ? "👦男" : "👧女"} &amp; {lastFamily.family.child2.gender === "B" ? "👦男" : "👧女"}
             </span>
-            <span className={lastFamily.isBothBoys ? "text-emerald-400 font-bold" : "text-slate-400"}>
-              {lastFamily.isBothBoys ? "両方男の子！" : "男女ペア"}
+            <span className={lastFamily.isBothBoys ? "text-emerald-400 font-black" : "text-slate-400"}>
+              {lastFamily.isBothBoys ? "🎉 両方男の子！" : "男女ペア"}
             </span>
           </div>
         )}
