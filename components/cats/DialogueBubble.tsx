@@ -66,7 +66,7 @@ export const DialogueBubble: React.FC<DialogueBubbleProps> = ({
   };
 
   const isKabu = speaker === "kabu";
-  const speakerName = isKabu ? "カブ先生" : "タマ助手";
+  const speakerName = isKabu ? "カブ教授" : "タマ助手";
   const bgClass = isKabu
     ? "bg-gradient-to-br from-chalkboard-light to-chalkboard border-amber-500/40 text-chalk-white"
     : "bg-gradient-to-br from-slate-900 to-chalkboard-light border-pink-500/40 text-chalk-white";

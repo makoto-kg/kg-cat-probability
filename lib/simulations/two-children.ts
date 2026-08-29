@@ -100,51 +100,68 @@ export function runTuesdayBoySim(
   };
 }
 
-/**
- * Generates the 14x14 grid data for Tuesday Boy visual proof.
- */
-export function generateTuesdayGridData(targetDayIndex: number = 2) {
-  // 14 outcomes per child: 0..6 (Boy Sun..Sat), 7..13 (Girl Sun..Sat)
-  const grid: {
-    r: number;
-    c: number;
-    c1Gender: Gender;
-    c1Day: number;
-    c2Gender: Gender;
-    c2Day: number;
-    isAccepted: boolean;
-    isBothBoys: boolean;
-  }[][] = [];
+export interface GridCellInfo {
+  r: number;
+  c: number;
+  c1Gender: Gender;
+  c1Day: DayOfWeek;
+  c1DayIndex: number;
+  c2Gender: Gender;
+  c2Day: DayOfWeek;
+  c2DayIndex: number;
+  isBothBoys: boolean;
+  isAccepted: boolean;
+}
 
+/**
+ * Generates the 14x14 grid data for basic and day-of-week boy problems.
+ */
+export function generateTuesdayGridData(
+  targetDayIndex: number = 2,
+  mode: "basic" | "day" = "day"
+) {
+  const grid: GridCellInfo[][] = [];
   let acceptedCount = 0;
   let bothBoysCount = 0;
 
   for (let r = 0; r < 14; r++) {
-    const row = [];
+    const row: GridCellInfo[] = [];
     const c1Gender: Gender = r < 7 ? "B" : "G";
-    const c1Day = r % 7;
+    const c1DayIndex = r % 7;
+    const c1Day = DAYS_OF_WEEK[c1DayIndex];
 
     for (let c = 0; c < 14; c++) {
       const c2Gender: Gender = c < 7 ? "B" : "G";
-      const c2Day = c % 7;
+      const c2DayIndex = c % 7;
+      const c2Day = DAYS_OF_WEEK[c2DayIndex];
 
-      const isC1Target = c1Gender === "B" && c1Day === targetDayIndex;
-      const isC2Target = c2Gender === "B" && c2Day === targetDayIndex;
-      const isAccepted = isC1Target || isC2Target;
-      const isBothBoys = isAccepted && c1Gender === "B" && c2Gender === "B";
+      const isBothBoys = c1Gender === "B" && c2Gender === "B";
 
-      if (isAccepted) acceptedCount++;
-      if (isBothBoys) bothBoysCount++;
+      let isAccepted = false;
+      if (mode === "basic") {
+        isAccepted = c1Gender === "B" || c2Gender === "B";
+      } else {
+        const isC1Target = c1Gender === "B" && c1DayIndex === targetDayIndex;
+        const isC2Target = c2Gender === "B" && c2DayIndex === targetDayIndex;
+        isAccepted = isC1Target || isC2Target;
+      }
+
+      if (isAccepted) {
+        acceptedCount++;
+        if (isBothBoys) bothBoysCount++;
+      }
 
       row.push({
         r,
         c,
         c1Gender,
         c1Day,
+        c1DayIndex,
         c2Gender,
         c2Day,
-        isAccepted,
+        c2DayIndex,
         isBothBoys,
+        isAccepted,
       });
     }
     grid.push(row);

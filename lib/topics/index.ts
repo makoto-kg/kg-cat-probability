@@ -180,12 +180,12 @@ export const TOPICS: TopicDefinition[] = [
           {
             speaker: "kabu",
             mood: "smiling",
-            text: "365マスのカレンダーに、生徒を1人ずつ入室させてみよう。衝突したらマスが光るよ。",
+            text: "教室に23人の生徒を集めてみよう。同じ誕生日の生徒がいたらマスが光るよ。",
           },
           {
             speaker: "tama",
             mood: "confused",
-            text: "えっ！？ まだ20人ちょっとしか入れてないのに、もう光ったにゃ！？ 偶然かにゃ……？",
+            text: "えっ！？ たった23人集めただけなのに、もう光ったにゃ！？ 偶然かにゃ……？",
           },
         ],
       },
@@ -356,12 +356,12 @@ export const TOPICS: TopicDefinition[] = [
           {
             speaker: "kabu",
             mood: "smiling",
-            text: "実際の1973年バークレー校のデータをバブルチャートで見てみよう。円の大きさが出願者数を表しているよ。",
+            text: "学科カードをタップして、好きな学科を組み合わせて合算合格率をシミュレーションしてみよう！",
           },
           {
             speaker: "tama",
             mood: "confused",
-            text: "学科A・B・D・Fで女性の合格率が勝ってるにゃ。でも女性の大きな円が下（合格率の低い学科）に集中してるような……？",
+            text: "えっ！？ 学科A・B・D・Fでは女性が勝ってるのに、全学科を合算すると男性が勝っちゃうにゃ！？ なんでこんな逆転が起きるにゃ……？",
           },
         ],
       },
@@ -449,7 +449,7 @@ export const TOPICS: TopicDefinition[] = [
           {
             speaker: "tama",
             mood: "confident",
-            text: "じゃあ最強の赤サイコロ(A)にするにゃ！ ……えっ、カブ先生は黄サイコロ(D)を選ぶにゃ？ 勝負だにゃ！",
+            text: "じゃあ最強の赤サイコロ(A)にするにゃ！ ……えっ、カブ教授は黄サイコロ(D)を選ぶにゃ？ 勝負だにゃ！",
           },
         ],
       },
@@ -557,13 +557,13 @@ export const TOPICS: TopicDefinition[] = [
         dialogues: [
           {
             speaker: "kabu",
-            mood: "explaining",
-            text: "性別×曜日で1人あたり14通り、2人で 14×14 = 196マスのグリッドを作って、棄却サンプリングしてみよう。",
+            mood: "pointing",
+            text: "第1子（14通り）× 第2子（14通り）の全196マスグリッドを見てごらん。『火曜生まれの男の子』で十字クロス（27マス）だけが残るよ。",
           },
           {
             speaker: "tama",
             mood: "shocked",
-            text: "にゃにゃーーっ！？ 条件に合うマスが27個あって、そのうち両方男の子のマスが13個もあるにゃ！ 本当に 13/27（48.15%）になったにゃ！！",
+            text: "本当だにゃ！ 十字に残った27マスのうち、左上の(男,男)エリアに13マス入ってるにゃ！ だから 13/27（48.15%）になるんだにゃ！",
           },
         ],
       },
@@ -674,3 +674,13 @@ export const TOPICS: TopicDefinition[] = [
     ],
   },
 ];
+
+/**
+ * Returns the next topic in the sequence, or null if at the end of the course.
+ */
+export function getNextTopic(currentSlug: string): TopicDefinition | null {
+  const currentIndex = TOPICS.findIndex((t) => t.slug === currentSlug);
+  if (currentIndex === -1 || currentIndex === TOPICS.length - 1) return null;
+  return TOPICS[currentIndex + 1];
+}
+

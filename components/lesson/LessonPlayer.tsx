@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, HelpCircle } from "lucide-react";
+import { ArrowLeft, ChevronRight, HelpCircle, RotateCcw, ArrowRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TopicDefinition } from "@/lib/topics";
+import { TopicDefinition, getNextTopic } from "@/lib/topics";
 import { StepIndicator } from "./StepIndicator";
 import { DialogueBubble } from "../cats/DialogueBubble";
 import { KabuSensei } from "../cats/KabuSensei";
@@ -27,18 +27,20 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
   const [dialogueIndex, setDialogueIndex] = useState(0);
   const [selectedUserChoice, setSelectedUserChoice] = useState<string | null>(null);
 
+  const nextTopic = getNextTopic(topic.slug);
   const currentStep = topic.steps[currentStepIndex];
   const dialogues = currentStep.dialogues;
   const currentDialogue = dialogues[dialogueIndex] || dialogues[dialogues.length - 1];
+
+  const isLastStep = currentStepIndex === topic.steps.length - 1;
+  const isLastDialogue = dialogueIndex >= dialogues.length - 1;
+  const isLessonFinished = isLastStep && isLastDialogue;
 
   const handleNextDialogue = () => {
     if (dialogueIndex < dialogues.length - 1) {
       setDialogueIndex((prev) => prev + 1);
     } else if (currentStepIndex < topic.steps.length - 1) {
       goToStep(currentStepIndex + 1);
-    } else {
-      // 最終ステップの対話が終了したら、最初のフェーズ（直感）に戻る
-      goToStep(0);
     }
   };
 
@@ -189,16 +191,66 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
               <DialogueBubble
                 speaker={speaker}
                 text={currentDialogue.text}
-                showNextButton={!isIntuitionChoicePending}
+                showNextButton={!isIntuitionChoicePending && !isLessonFinished}
                 actionButtonText={
                   dialogueIndex < dialogues.length - 1
                     ? "つぎへ ▶"
                     : currentStepIndex < topic.steps.length - 1
                     ? `次のステップ (${topic.steps[currentStepIndex + 1].title}) ▶`
-                    : "完了！ 最初からもう一度遊ぶ"
+                    : "完了"
                 }
                 onAction={handleNextDialogue}
               />
+
+              {/* Lesson Completion Card: 最初からもう一度学ぶ / 次の講義へ */}
+              <AnimatePresence>
+                {isLessonFinished && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    transition={{ duration: 0.3 }}
+                    className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-chalkboard-dark border-2 border-amber-500/60 shadow-2xl flex flex-col gap-3.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-amber-300 font-bold text-sm sm:text-base">
+                        <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
+                        <span>講義修了！ お疲れ様でした！</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        CLEAR! 🎓
+                      </span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                      {nextTopic
+                        ? `「${topic.title}」の解説を最後まで学びました！ もう一度復習するか、次の講義に進みましょう。`
+                        : `全7つの確率パラドックス講義をすべて修了しました！ おめでとうございます！`}
+                    </p>
+
+                    <div className={`grid gap-2.5 pt-1 ${nextTopic ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+                      <button
+                        type="button"
+                        onClick={() => goToStep(0)}
+                        className="w-full px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-xs sm:text-sm border border-slate-600 transition-all flex items-center justify-center gap-2 shadow"
+                      >
+                        <RotateCcw className="w-4 h-4 text-amber-400" />
+                        <span>最初からもう一度学ぶ</span>
+                      </button>
+
+                      {nextTopic && (
+                        <Link
+                          href={`/topics/${nextTopic.slug}`}
+                          className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-98 text-slate-950 font-black text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                        >
+                          <span>次の講義へ ({nextTopic.title})</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* User Prompt Choices (In Intuition Phase) */}
               <AnimatePresence>

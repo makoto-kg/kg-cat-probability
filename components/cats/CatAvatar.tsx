@@ -56,7 +56,7 @@ export const CatAvatar: React.FC<CatAvatarProps> = ({
     }
   }, [character, mood]);
 
-  const name = character === "kabu" ? "カブ先生" : "タマ助手";
+  const name = character === "kabu" ? "カブ教授" : "タマ助手";
   const badgeColor =
     character === "kabu"
       ? "bg-amber-900/80 text-amber-200 border-amber-600/50"

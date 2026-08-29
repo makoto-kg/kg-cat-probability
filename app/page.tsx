@@ -20,11 +20,11 @@ export default function HomePage() {
               <span>インタラクティブ確率・統計実験室</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-chalk-white tracking-tight">
-              猫と学ぶ確率・統計 <span className="text-amber-400 text-lg sm:text-2xl font-bold block sm:inline">〜直感の裏切りを暴こう〜</span>
+              猫と学ぶ確率パラドックス <span className="text-amber-400 text-lg sm:text-2xl font-bold block sm:inline">〜直感の裏切りを暴こう〜</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
               「絶対にこうだ！」という人間の直感は、確率の世界ではよく裏切られます。
-              カブ先生とタマ助手と一緒に、実際に動かして、シミュレーションで確信し、納得の種明かしを体験しよう！
+              カブ教授とタマ助手と一緒に、実際に動かして、シミュレーションで確信し、納得の種明かしを体験しよう！
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export default function HomePage() {
           >
             <KabuSensei mood="explaining" size="sm" />
             <div className="flex flex-col justify-center max-w-[200px]">
-              <span className="text-xs font-black text-amber-300">カブ先生 & タマ助手</span>
+              <span className="text-xs font-black text-amber-300">カブ教授 & タマ助手</span>
               <p className="text-[11px] text-slate-300 mt-1 leading-snug">
                 「タマ助手、今日も不思議な確率の授業を始めようか！」
                 <br />
@@ -130,7 +130,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-chalkboard-border/60 bg-slate-950/90 py-6 px-4 text-center text-xs text-slate-500">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 猫と学ぶ確率・統計 — 完全静的SPA</p>
+          <p>© 2026 猫と学ぶ確率パラドックス — 完全静的SPA</p>
           <p className="flex items-center gap-1 text-slate-400">
             <Compass className="w-3.5 h-3.5 text-amber-400" />
             シミュレーションはすべて純粋関数＆クライアント完結

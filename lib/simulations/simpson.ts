@@ -108,10 +108,10 @@ export function computeSimpsonSummary(
     departments: data,
     totalMaleApplicants,
     totalMaleAdmitted,
-    overallMaleRate: totalMaleAdmitted / totalMaleApplicants,
+    overallMaleRate: totalMaleApplicants > 0 ? totalMaleAdmitted / totalMaleApplicants : 0,
     totalFemaleApplicants,
     totalFemaleAdmitted,
-    overallFemaleRate: totalFemaleAdmitted / totalFemaleApplicants,
+    overallFemaleRate: totalFemaleApplicants > 0 ? totalFemaleAdmitted / totalFemaleApplicants : 0,
     departmentsWhereFemaleLeads,
   };
 }

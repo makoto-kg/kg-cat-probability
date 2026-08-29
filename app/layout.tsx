@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "猫と学ぶ確率・統計",
-  description: "カブ先生とタマ助手の対話で学ぶ、直感に反する確率・統計の世界",
+  title: "猫と学ぶ確率パラドックス",
+  description: "カブ教授とタマ助手の対話で学ぶ、直感に反する確率・統計の世界",
 };
 
 export default function RootLayout({

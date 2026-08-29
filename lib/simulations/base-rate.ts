@@ -24,6 +24,25 @@ export interface BaseRateBreakdown {
 
 export type PersonCategory = "TP" | "FP" | "FN" | "TN";
 
+export interface SingleInspectionResult {
+  id: number;
+  isSick: boolean;
+  testResult: "positive" | "negative";
+  category: PersonCategory;
+}
+
+export interface InspectionBatchResult {
+  count: number;
+  tp: number; // 真陽性
+  fp: number; // 偽陽性（誤診）
+  tn: number; // 真陰性
+  fn: number; // 偽陰性（見逃し）
+  positives: number;
+  negatives: number;
+  ppv: number;
+  lastCat?: SingleInspectionResult;
+}
+
 export interface GridPerson {
   id: number;
   isSick: boolean;
@@ -172,4 +191,71 @@ export function generateBaseRateGrid(
   }
 
   return { persons, breakdown };
+}
+
+/**
+ * Simulates testing one or more cats with given parameters.
+ */
+export function simulateInspectionBatch(
+  count: number,
+  params: BaseRateParams,
+  rng: PRNG = Math.random
+): InspectionBatchResult {
+  const { prevalence, sensitivity, specificity } = params;
+  let tp = 0;
+  let fp = 0;
+  let tn = 0;
+  let fn = 0;
+  let lastCat: SingleInspectionResult | undefined;
+
+  for (let i = 0; i < count; i++) {
+    const isSick = rng() < prevalence;
+    let testResult: "positive" | "negative";
+
+    if (isSick) {
+      testResult = rng() < sensitivity ? "positive" : "negative";
+    } else {
+      testResult = rng() < 1 - specificity ? "positive" : "negative";
+    }
+
+    let category: PersonCategory;
+    if (isSick && testResult === "positive") {
+      category = "TP";
+      tp++;
+    } else if (!isSick && testResult === "positive") {
+      category = "FP";
+      fp++;
+    } else if (!isSick && testResult === "negative") {
+      category = "TN";
+      tn++;
+    } else {
+      category = "FN";
+      fn++;
+    }
+
+    if (i === count - 1) {
+      lastCat = {
+        id: Math.floor(rng() * 10000) + 1,
+        isSick,
+        testResult,
+        category,
+      };
+    }
+  }
+
+  const positives = tp + fp;
+  const negatives = tn + fn;
+  const ppv = positives > 0 ? tp / positives : 0;
+
+  return {
+    count,
+    tp,
+    fp,
+    tn,
+    fn,
+    positives,
+    negatives,
+    ppv,
+    lastCat,
+  };
 }

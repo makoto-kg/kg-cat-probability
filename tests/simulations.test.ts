@@ -8,6 +8,7 @@ import {
 import {
   computeBaseRateBreakdown,
   calculateTheoreticalPPV,
+  simulateInspectionBatch,
 } from "@/lib/simulations/base-rate";
 import { computeSimpsonSummary, BERKELEY_1973_DATA } from "@/lib/simulations/simpson";
 import {
@@ -74,6 +75,19 @@ describe("5-3. Base Rate Fallacy Simulation", () => {
     expect(breakdown.truePositives).toBe(10);
     expect(breakdown.falsePositives).toBe(100);
     expect(breakdown.ppv).toBeCloseTo(0.0909, 2);
+  });
+
+  it("simulates batch inspections correctly categorizing TP, FP, TN, FN", () => {
+    const batch = simulateInspectionBatch(
+      10000,
+      { prevalence: 0.001, sensitivity: 0.99, specificity: 0.99 },
+      createRNG(12345)
+    );
+    expect(batch.count).toBe(10000);
+    expect(batch.tp + batch.fp + batch.tn + batch.fn).toBe(10000);
+    expect(batch.positives).toBe(batch.tp + batch.fp);
+    expect(batch.negatives).toBe(batch.tn + batch.fn);
+    expect(batch.lastCat).toBeDefined();
   });
 });
 

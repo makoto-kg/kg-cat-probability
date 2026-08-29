@@ -72,7 +72,7 @@ export const FormulaAccordion: React.FC<FormulaAccordionProps> = ({
 
             <div className="mt-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-xs sm:text-sm text-emerald-200 leading-relaxed">
               <strong className="text-emerald-300 font-bold block mb-1">
-                💡 カブ先生のまとめ
+                💡 カブ教授のまとめ
               </strong>
               {takeaway}
             </div>

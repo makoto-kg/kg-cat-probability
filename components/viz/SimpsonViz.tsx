@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   computeSimpsonSummary,
@@ -15,7 +15,17 @@ interface SimpsonVizProps {
 
 export const SimpsonViz: React.FC<SimpsonVizProps> = ({ stepIndex }) => {
   const [sortByRate, setSortByRate] = useState(false);
+  const [selectedDepts, setSelectedDepts] = useState<string[]>([]);
+
   const summary = computeSimpsonSummary(BERKELEY_1973_DATA);
+
+  const selectedData = useMemo(() => {
+    return BERKELEY_1973_DATA.filter((d) => selectedDepts.includes(d.name));
+  }, [selectedDepts]);
+
+  const aggregate = useMemo(() => {
+    return computeSimpsonSummary(selectedData);
+  }, [selectedData]);
 
   const sortedDepts = [...summary.departments].sort((a, b) => {
     if (sortByRate) {
@@ -59,55 +69,279 @@ export const SimpsonViz: React.FC<SimpsonVizProps> = ({ stepIndex }) => {
     );
   }
 
-  // STEP 1: 体験フェーズ (Experience) - 学科別データ
+  // STEP 1: 体験フェーズ (Experience) - 学科組み合わせ合算シミュレーター
   if (stepIndex === 1) {
+    const isAllSelected = selectedDepts.length === BERKELEY_1973_DATA.length;
+    const isNoneSelected = selectedDepts.length === 0;
+    const femaleLeads =
+      !isNoneSelected &&
+      aggregate.overallFemaleRate > aggregate.overallMaleRate;
+    const maleLeads =
+      !isNoneSelected &&
+      aggregate.overallMaleRate > aggregate.overallFemaleRate;
+
     return (
-      <div className="flex flex-col gap-4 w-full">
-        <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center">
-          <span>📊 学科別の合格率一覧（6学科）</span>
-          <span className="text-pink-300">
-            4学科（A, B, D, F）で女性勝利
-          </span>
+      <div className="flex flex-col gap-3 w-full">
+        {/* Real-time Aggregation Card (Fixed structure & stable height) */}
+        <div
+          className={`p-3 sm:p-3.5 rounded-2xl border-2 shadow-xl flex flex-col gap-2.5 transition-colors ${
+            isNoneSelected
+              ? "bg-slate-950/80 border-slate-700 shadow-md"
+              : maleLeads
+              ? "bg-gradient-to-br from-blue-950/80 via-slate-950 to-amber-950/50 border-amber-400/80 ring-1 ring-amber-400/30"
+              : "bg-gradient-to-br from-pink-950/80 via-slate-950 to-slate-900 border-pink-500/80 ring-1 ring-pink-500/30"
+          }`}
+        >
+          {/* Header Row */}
+          <div className="flex items-center justify-between flex-wrap gap-2 h-7 shrink-0">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-black text-chalk-white">
+                選択中の合算結果:{" "}
+                <span className="text-chalk-yellow font-mono">
+                  {selectedDepts.length > 0
+                    ? `学科 [ ${[...selectedDepts].sort().join(", ")} ]`
+                    : "（未選択）"}
+                </span>
+              </span>
+            </div>
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-xs font-black shrink-0 ${
+                isNoneSelected
+                  ? "bg-slate-800 text-slate-400 border border-slate-700"
+                  : maleLeads
+                  ? "bg-blue-600 text-white animate-pulse shadow"
+                  : femaleLeads
+                  ? "bg-pink-600 text-white shadow"
+                  : "bg-slate-700 text-slate-200"
+              }`}
+            >
+              {isNoneSelected
+                ? "未選択"
+                : maleLeads
+                ? `⚡ 男性優勢（+${((aggregate.overallMaleRate - aggregate.overallFemaleRate) * 100).toFixed(1)}%）`
+                : femaleLeads
+                ? `🌸 女性優勢（+${((aggregate.overallFemaleRate - aggregate.overallMaleRate) * 100).toFixed(1)}%）`
+                : "同点"}
+            </span>
+          </div>
+
+          {/* Rates Comparison Display (Always 2 boxes rendered so height is 100% constant) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {/* Male Box */}
+            <div className="p-2 sm:p-2.5 rounded-xl bg-blue-950/40 border border-blue-500/30 flex flex-col gap-1">
+              <div className="flex justify-between items-center text-xs font-bold text-blue-300">
+                <span>🔷 男性 合算合格率</span>
+                <span className="text-sm sm:text-base font-black font-mono">
+                  {isNoneSelected
+                    ? "- %"
+                    : `${(aggregate.overallMaleRate * 100).toFixed(1)}%`}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                  style={{
+                    width: isNoneSelected
+                      ? "0%"
+                      : `${aggregate.overallMaleRate * 100}%`,
+                  }}
+                />
+              </div>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {isNoneSelected
+                  ? "出願者: 0人"
+                  : `合格 ${aggregate.totalMaleAdmitted.toLocaleString()}人 / 出願 ${aggregate.totalMaleApplicants.toLocaleString()}人`}
+              </span>
+            </div>
+
+            {/* Female Box */}
+            <div className="p-2 sm:p-2.5 rounded-xl bg-pink-950/40 border border-pink-500/30 flex flex-col gap-1">
+              <div className="flex justify-between items-center text-xs font-bold text-pink-300">
+                <span>🌸 女性 合算合格率</span>
+                <span className="text-sm sm:text-base font-black font-mono">
+                  {isNoneSelected
+                    ? "- %"
+                    : `${(aggregate.overallFemaleRate * 100).toFixed(1)}%`}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <div
+                  className="h-full bg-pink-500 rounded-full transition-all duration-300"
+                  style={{
+                    width: isNoneSelected
+                      ? "0%"
+                      : `${aggregate.overallFemaleRate * 100}%`,
+                  }}
+                />
+              </div>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {isNoneSelected
+                  ? "出願者: 0人"
+                  : `合格 ${aggregate.totalFemaleAdmitted.toLocaleString()}人 / 出願 ${aggregate.totalFemaleApplicants.toLocaleString()}人`}
+              </span>
+            </div>
+          </div>
+
+          {/* Educational Insight Bar (Fixed min-height to prevent layout jumps) */}
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 leading-snug min-h-[44px] flex items-center">
+            {isNoneSelected ? (
+              <span className="text-slate-400">
+                👇 下の学科カードをタップして、合算したい学科を選択してください。
+              </span>
+            ) : selectedDepts.length === 6 ? (
+              <span className="text-amber-200">
+                <strong>💡 全学科合算の罠：</strong> 各学科単体では4学科で女性優勢なのに、全体では<strong>男性（44.5%）が女性（30.4%）に逆転圧勝</strong>します！
+              </span>
+            ) : femaleLeads ? (
+              <span className="text-pink-200">
+                <strong>🌸 女性優勢：</strong> 選択中の学科（{[...selectedDepts].sort().join(", ")}）では女性の合算合格率が上回っています。
+              </span>
+            ) : maleLeads ? (
+              <span className="text-blue-200">
+                <strong>⚡ 男性優勢：</strong> 選択中の学科（{[...selectedDepts].sort().join(", ")}）では男性の合算合格率が上回っています。
+              </span>
+            ) : (
+              <span className="text-slate-300">
+                選択中の学科（{[...selectedDepts].sort().join(", ")}）では男女の合格率が同点です。
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="rounded-2xl bg-slate-950/60 border border-chalkboard-border overflow-hidden shadow">
-          <table className="w-full text-left text-xs sm:text-sm border-collapse">
-            <thead>
-              <tr className="bg-chalkboard-dark text-slate-300 border-b border-chalkboard-border">
-                <th className="p-2 sm:p-3 font-bold">学科</th>
-                <th className="p-2 sm:p-3 font-bold text-blue-300">男 合格率</th>
-                <th className="p-2 sm:p-3 font-bold text-pink-300">女 合格率</th>
-                <th className="p-2 sm:p-3 font-bold text-slate-400">結果</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {summary.departments.map((dept) => {
-                const femaleWins = dept.femaleRate > dept.maleRate;
-                return (
-                  <tr key={dept.name} className="hover:bg-slate-900/40">
-                    <td className="p-2 sm:p-3 font-bold text-chalk-yellow">学科 {dept.name}</td>
-                    <td className="p-2 sm:p-3 font-mono text-blue-200">
-                      {(dept.maleRate * 100).toFixed(0)}% <span className="text-[10px] sm:text-xs text-slate-400 font-normal">({dept.maleApplicants}人)</span>
-                    </td>
-                    <td className="p-2 sm:p-3 font-mono text-pink-200">
-                      {(dept.femaleRate * 100).toFixed(0)}% <span className="text-[10px] sm:text-xs text-slate-400 font-normal">({dept.femaleApplicants}人)</span>
-                    </td>
-                    <td className="p-2 sm:p-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-bold border ${
-                          femaleWins
-                            ? "bg-pink-950/70 text-pink-300 border-pink-700"
-                            : "bg-blue-950/70 text-blue-300 border-blue-700"
-                        }`}
-                      >
-                        {femaleWins ? "🌸 女性優勢" : "🔷 男性優勢"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        {/* Presets Row */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs font-bold text-slate-400 mr-1">クイック実験:</span>
+          <button
+            type="button"
+            onClick={() => setSelectedDepts(["A", "B", "C", "D", "E", "F"])}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+              isAllSelected
+                ? "bg-amber-500 text-slate-950 border-amber-400 font-black shadow"
+                : "bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800"
+            }`}
+          >
+            全学科合算 (A〜F)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedDepts(["A", "B", "D", "F"])}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+              selectedDepts.length === 4 &&
+              selectedDepts.every((d) => ["A", "B", "D", "F"].includes(d))
+                ? "bg-pink-600 text-white border-pink-400 font-black shadow"
+                : "bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800"
+            }`}
+          >
+            🌸 女性勝利4学科 (A,B,D,F)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedDepts(["A", "B"])}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+              selectedDepts.length === 2 &&
+              selectedDepts.includes("A") &&
+              selectedDepts.includes("B")
+                ? "bg-amber-500 text-slate-950 border-amber-400 font-black shadow"
+                : "bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800"
+            }`}
+          >
+            易しい学科 (A,B)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedDepts(["C", "E"])}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+              selectedDepts.length === 2 &&
+              selectedDepts.includes("C") &&
+              selectedDepts.includes("E")
+                ? "bg-amber-500 text-slate-950 border-amber-400 font-black shadow"
+                : "bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800"
+            }`}
+          >
+            難関学科 (C,E)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedDepts([])}
+            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
+          >
+            全解除
+          </button>
+        </div>
+
+        {/* 6 Departments Grid (Clickable Cards with Fixed Height) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {BERKELEY_1973_DATA.map((dept) => {
+            const isSelected = selectedDepts.includes(dept.name);
+            const femaleWins = dept.femaleRate > dept.maleRate;
+
+            return (
+              <button
+                key={dept.name}
+                type="button"
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedDepts(selectedDepts.filter((d) => d !== dept.name));
+                  } else {
+                    setSelectedDepts([...selectedDepts, dept.name]);
+                  }
+                }}
+                className={`p-2.5 sm:p-3 rounded-2xl border-2 text-left transition-all relative overflow-hidden flex flex-col justify-between h-[104px] select-none ${
+                  isSelected
+                    ? "bg-slate-900 border-amber-400/80 shadow-md ring-1 ring-amber-400/30"
+                    : "bg-slate-950/60 border-slate-800 opacity-60 hover:opacity-100"
+                }`}
+              >
+                {/* Card Top */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold ${
+                        isSelected
+                          ? "bg-amber-500 text-slate-950 font-black"
+                          : "bg-slate-800 text-slate-500"
+                      }`}
+                    >
+                      {isSelected ? "✓" : ""}
+                    </span>
+                    <span className="font-black text-sm text-chalk-yellow">
+                      学科 {dept.name}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      femaleWins
+                        ? "bg-pink-950/80 text-pink-300 border-pink-600"
+                        : "bg-blue-950/80 text-blue-300 border-blue-600"
+                    }`}
+                  >
+                    {femaleWins ? "🌸 女優勢" : "🔷 男優勢"}
+                  </span>
+                </div>
+
+                {/* Rates Breakdown in this dept */}
+                <div className="space-y-0.5 text-xs">
+                  <div className="flex justify-between font-mono text-[11px]">
+                    <span className="text-blue-300">男: {(dept.maleRate * 100).toFixed(0)}%</span>
+                    <span className="text-slate-400">({dept.maleApplicants}人)</span>
+                  </div>
+                  <div className="flex justify-between font-mono text-[11px]">
+                    <span className="text-pink-300">女: {(dept.femaleRate * 100).toFixed(0)}%</span>
+                    <span className="text-slate-400">({dept.femaleApplicants}人)</span>
+                  </div>
+                </div>
+
+                {/* Overall Rate badge */}
+                <div className="text-[10px] text-slate-400 border-t border-slate-800/80 pt-1 flex justify-between">
+                  <span>難易度:</span>
+                  <span className="font-mono text-slate-300">
+                    合格率 {(dept.overallRate * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     );

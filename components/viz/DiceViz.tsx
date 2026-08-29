@@ -21,6 +21,7 @@ interface DiceVizProps {
 export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
   const [playerDie, setPlayerDie] = useState<DieName>("A");
   const [kabuDie, setKabuDie] = useState<DieName>("D");
+  const [rollKey, setRollKey] = useState(0);
   const [lastRoll, setLastRoll] = useState<{
     playerVal: number;
     kabuVal: number;
@@ -41,6 +42,7 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
     setKabuDie(counter);
     setLastRoll(null);
     setSimResults({ playerWins: 0, kabuWins: 0, total: 0 });
+    setRollKey(0);
   };
 
   const handleRollOnce = () => {
@@ -51,6 +53,7 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
     else if (kVal > pVal) w = "kabu";
 
     setLastRoll({ playerVal: pVal, kabuVal: kVal, winner: w });
+    setRollKey((prev) => prev + 1);
     setSimResults((prev) => ({
       playerWins: prev.playerWins + (w === "player" ? 1 : 0),
       kabuWins: prev.kabuWins + (w === "kabu" ? 1 : 0),
@@ -116,7 +119,7 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
         <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl">
           <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-300 mb-2">
             <span>先攻：あなたのサイコロを選んでね</span>
-            <span className="text-amber-400">カブ先生が後出しで対抗</span>
+            <span className="text-amber-400">カブ教授が後出しで対抗</span>
           </div>
 
           <div className="grid grid-cols-4 gap-2">
@@ -137,56 +140,188 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
                   {d}
                 </div>
                 <span className="text-xs font-bold text-slate-200 block mt-1">
-                  {playerDie === d ? "選択中" : kabuDie === d ? "先生" : ""}
+                  {playerDie === d ? "選択中" : kabuDie === d ? "教授" : ""}
                 </span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Duel Area */}
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-chalkboard-dark border border-chalkboard-border flex flex-col items-center gap-3">
-          <div className="flex items-center justify-around w-full max-w-sm">
-            <div className="text-center">
-              <span className="text-xs sm:text-sm font-bold text-pink-300">あなた (先攻: {playerDie})</span>
-              <div
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-lg mx-auto mt-1"
+        {/* Duel Arena */}
+        <div
+          className={`p-4 sm:p-5 rounded-2xl border-2 shadow-2xl flex flex-col items-center gap-3.5 transition-all duration-300 ${
+            !lastRoll
+              ? "bg-slate-950/80 border-slate-700"
+              : lastRoll.winner === "player"
+              ? "bg-gradient-to-br from-pink-950/80 via-slate-950 to-slate-900 border-pink-400 ring-2 ring-pink-400/40"
+              : lastRoll.winner === "kabu"
+              ? "bg-gradient-to-br from-amber-950/80 via-slate-950 to-slate-900 border-amber-400 ring-2 ring-amber-400/40"
+              : "bg-slate-950/80 border-slate-600"
+          }`}
+        >
+          {/* Top Status & Dice Comparison */}
+          <div className="flex items-center justify-around w-full max-w-md">
+            {/* Player Side */}
+            <div className="flex flex-col items-center gap-1.5 flex-1">
+              <div className="flex items-center gap-1 h-6">
+                <span className="text-xs sm:text-sm font-bold text-pink-300">
+                  あなた ({playerDie})
+                </span>
+                {lastRoll && lastRoll.winner === "player" && (
+                  <span className="text-xs font-black px-1.5 py-0.5 rounded bg-pink-500 text-white animate-bounce shadow">
+                    WIN! 👑
+                  </span>
+                )}
+                {lastRoll && lastRoll.winner === "kabu" && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                    LOSE 😢
+                  </span>
+                )}
+              </div>
+
+              {/* Player Die Box */}
+              <motion.div
+                key={`p-${rollKey}`}
+                initial={lastRoll ? { rotate: -180, scale: 0.7 } : false}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black text-white shadow-xl transition-all ${
+                  lastRoll?.winner === "player"
+                    ? "ring-4 ring-pink-400 scale-110 shadow-pink-500/50"
+                    : lastRoll?.winner === "kabu"
+                    ? "opacity-50 scale-95 grayscale-[40%]"
+                    : ""
+                }`}
                 style={{ backgroundColor: DIE_COLORS[playerDie].bg }}
               >
                 {lastRoll ? lastRoll.playerVal : "?"}
-              </div>
+              </motion.div>
+
+              <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono text-center">
+                目: [{EFRON_DICE[playerDie].join(",")}]
+              </span>
             </div>
 
-            <Swords className="w-6 h-6 text-amber-400 animate-pulse" />
+            {/* Middle Comparison Sign */}
+            <div className="flex flex-col items-center justify-center px-2">
+              <motion.div
+                key={`vs-${rollKey}`}
+                initial={lastRoll ? { scale: 0.4 } : false}
+                animate={{ scale: 1 }}
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-black shadow-lg ${
+                  !lastRoll
+                    ? "bg-slate-900 text-amber-400 border border-slate-700 text-sm"
+                    : lastRoll.winner === "player"
+                    ? "bg-pink-600 text-white text-2xl animate-pulse"
+                    : lastRoll.winner === "kabu"
+                    ? "bg-amber-500 text-slate-950 text-2xl animate-pulse"
+                    : "bg-slate-800 text-slate-300 text-lg"
+                }`}
+              >
+                {!lastRoll
+                  ? "VS"
+                  : lastRoll.winner === "player"
+                  ? "＞"
+                  : lastRoll.winner === "kabu"
+                  ? "＜"
+                  : "＝"}
+              </motion.div>
+            </div>
 
-            <div className="text-center">
-              <span className="text-xs sm:text-sm font-bold text-amber-300">カブ先生 (後出し: {kabuDie})</span>
-              <div
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-lg mx-auto mt-1"
+            {/* Kabu Side */}
+            <div className="flex flex-col items-center gap-1.5 flex-1">
+              <div className="flex items-center gap-1 h-6">
+                <span className="text-xs sm:text-sm font-bold text-amber-300">
+                  カブ教授 ({kabuDie})
+                </span>
+                {lastRoll && lastRoll.winner === "kabu" && (
+                  <span className="text-xs font-black px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 animate-bounce shadow">
+                    WIN! 👨‍🏫
+                  </span>
+                )}
+              </div>
+
+              {/* Kabu Die Box */}
+              <motion.div
+                key={`k-${rollKey}`}
+                initial={lastRoll ? { rotate: 180, scale: 0.7 } : false}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black text-white shadow-xl transition-all ${
+                  lastRoll?.winner === "kabu"
+                    ? "ring-4 ring-amber-400 scale-110 shadow-amber-500/50"
+                    : lastRoll?.winner === "player"
+                    ? "opacity-50 scale-95 grayscale-[40%]"
+                    : ""
+                }`}
                 style={{ backgroundColor: DIE_COLORS[kabuDie].bg }}
               >
                 {lastRoll ? lastRoll.kabuVal : "?"}
-              </div>
+              </motion.div>
+
+              <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono text-center">
+                目: [{EFRON_DICE[kabuDie].join(",")}]
+              </span>
             </div>
           </div>
 
-          {lastRoll && (
-            <div
-              className={`px-3 py-1 rounded-full text-xs font-black border ${
+          {/* Big Result Announcement Banner */}
+          {lastRoll ? (
+            <motion.div
+              key={`banner-${rollKey}`}
+              initial={{ opacity: 0, y: 6, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className={`w-full py-2.5 px-4 rounded-xl text-center shadow-lg border flex flex-col items-center gap-0.5 ${
                 lastRoll.winner === "player"
-                  ? "bg-pink-900/80 text-pink-200 border-pink-500"
+                  ? "bg-gradient-to-r from-pink-900/90 via-rose-900/90 to-pink-900/90 border-pink-400 text-pink-100 ring-1 ring-pink-400/50"
                   : lastRoll.winner === "kabu"
-                  ? "bg-amber-900/80 text-amber-200 border-amber-500"
-                  : "bg-slate-800 text-slate-300 border-slate-600"
+                  ? "bg-gradient-to-r from-amber-950/90 via-amber-900/90 to-amber-950/90 border-amber-400 text-amber-100 ring-1 ring-amber-400/50"
+                  : "bg-slate-900 border-slate-700 text-slate-300"
               }`}
             >
-              {lastRoll.winner === "player"
-                ? "🎉 あなたの勝ち！"
-                : lastRoll.winner === "kabu"
-                ? "👨‍🏫 カブ先生の勝ち！"
-                : "引き分け"}
+              <div className="text-sm sm:text-base font-black flex items-center justify-center gap-2">
+                {lastRoll.winner === "player" ? (
+                  <>
+                    <Sparkles className="w-5 h-5 text-pink-300 shrink-0" />
+                    <span>🎉 あなたの勝ち！（出目: {lastRoll.playerVal} ＞ {lastRoll.kabuVal}）</span>
+                    <Sparkles className="w-5 h-5 text-pink-300 shrink-0" />
+                  </>
+                ) : lastRoll.winner === "kabu" ? (
+                  <>
+                    <Swords className="w-5 h-5 text-amber-300 shrink-0" />
+                    <span>😢 あなたの負け…（出目: {lastRoll.playerVal} ＜ {lastRoll.kabuVal}）</span>
+                    <Swords className="w-5 h-5 text-amber-300 shrink-0" />
+                  </>
+                ) : (
+                  <span>🤝 引き分け！（出目: {lastRoll.playerVal} ＝ {lastRoll.kabuVal}）</span>
+                )}
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-300">
+                {lastRoll.winner === "player"
+                  ? "お見事！ 33.3%の確率を引いて後出し教授に勝利しました！"
+                  : lastRoll.winner === "kabu"
+                  ? `後出しのカブ教授（${kabuDie}サイコロ・理論勝率 66.7%）が勝利しました！`
+                  : "同じ出目が出ました。もう一度振ってみよう！"}
+              </p>
+            </motion.div>
+          ) : (
+            <div className="text-xs text-slate-400 py-1 font-medium text-center">
+              👉 下の「サイコロを1回振る」ボタンを押して対決しよう！
             </div>
           )}
+
+          {/* Mini Scoreboard */}
+          <div className="flex items-center justify-between w-full pt-2 border-t border-slate-800 text-xs text-slate-300">
+            <span className="font-bold flex items-center gap-1 text-pink-300">
+              あなた: <span className="font-mono font-black text-sm">{simResults.playerWins}</span> 勝
+            </span>
+            <span className="font-mono text-slate-400 text-[11px]">
+              累計 {simResults.total} 戦 (教授勝率: {simResults.total > 0 ? ((simResults.kabuWins / simResults.total) * 100).toFixed(0) : 0}%)
+            </span>
+            <span className="font-bold flex items-center gap-1 text-amber-300">
+              カブ教授: <span className="font-mono font-black text-sm">{simResults.kabuWins}</span> 勝
+            </span>
+          </div>
         </div>
 
         <ControlPanel
@@ -195,7 +330,9 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
           onReset={() => {
             setLastRoll(null);
             setSimResults({ playerWins: 0, kabuWins: 0, total: 0 });
+            setRollKey(0);
           }}
+          resetText="リセット"
         />
       </div>
     );
@@ -215,7 +352,7 @@ export const DiceViz: React.FC<DiceVizProps> = ({ stepIndex }) => {
         <div className="p-4 rounded-2xl bg-slate-950/80 border border-chalkboard-border flex flex-col gap-3">
           <div>
             <div className="flex justify-between text-xs font-bold text-amber-300 mb-1">
-              <span>👨‍🏫 カブ先生（後出し側）の勝率 (理論値: 66.7%)</span>
+              <span>👨‍🏫 カブ教授（後出し側）の勝率 (理論値: 66.7%)</span>
               <span className="font-mono">
                 {simResults.total > 0
                   ? ((simResults.kabuWins / simResults.total) * 100).toFixed(1)

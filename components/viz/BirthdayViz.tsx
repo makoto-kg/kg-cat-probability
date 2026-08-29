@@ -51,9 +51,7 @@ function dayIndexToDate(dayIndex: number): { month: number; day: number; label: 
 
 export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
   const [numPeople, setNumPeople] = useState(23);
-  const [singleTrial, setSingleTrial] = useState<BirthdayTrialResult>(() =>
-    simulateBirthdaySingle(23)
-  );
+  const [singleTrial, setSingleTrial] = useState<BirthdayTrialResult | null>(null);
   const [batchStats, setBatchStats] = useState<BirthdayBatchResult>(() =>
     runBirthdaySim(1000, 23)
   );
@@ -61,6 +59,10 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
 
   const handleRunSingle = () => {
     setSingleTrial(simulateBirthdaySingle(numPeople));
+  };
+
+  const handleReset = () => {
+    setSingleTrial(null);
   };
 
   const handleRunBatch = (trials: number) => {
@@ -71,12 +73,15 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
 
   const handleSliderChange = (n: number) => {
     setNumPeople(n);
-    setSingleTrial(simulateBirthdaySingle(n));
+    if (singleTrial !== null) {
+      setSingleTrial(simulateBirthdaySingle(n));
+    }
     setBatchStats(runBirthdaySim(500, n));
   };
 
   const dayOccupancy = useMemo(() => {
     const map = new Map<number, number[]>();
+    if (!singleTrial) return map;
     singleTrial.birthdays.forEach((day, personIdx) => {
       const list = map.get(day) || [];
       list.push(personIdx + 1);
@@ -86,12 +91,13 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
   }, [singleTrial]);
 
   const collisionDates = useMemo(() => {
+    if (!singleTrial) return [];
     return singleTrial.collisionDays.map((dayIdx) => ({
       dayIdx,
       dateInfo: dayIndexToDate(dayIdx),
       personIds: dayOccupancy.get(dayIdx) || [],
     }));
-  }, [singleTrial.collisionDays, dayOccupancy]);
+  }, [singleTrial, dayOccupancy]);
 
   const pairCount = calculatePairs(numPeople);
   const theoreticalProb = theoreticalBirthdayProbability(numPeople);
@@ -136,49 +142,65 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col gap-3.5 w-full"
+        className="flex flex-col gap-3 w-full"
       >
-        {/* Collision Alert Header */}
+        {/* Collision Alert Header (Completely fixed height to prevent any layout shifts) */}
         <div
-          className={`p-3 rounded-2xl border-2 flex items-center justify-between transition-all ${
-            singleTrial.hasCollision
+          className={`px-3 py-2 rounded-2xl border-2 flex items-center justify-between transition-colors h-[72px] shrink-0 overflow-hidden ${
+            !singleTrial
+              ? "bg-slate-950/80 border-slate-700 shadow-md"
+              : singleTrial.hasCollision
               ? "bg-pink-950/70 border-pink-500 shadow-lg"
               : "bg-slate-950/80 border-slate-700"
           }`}
         >
-          <div className="flex items-center gap-2">
-            {singleTrial.hasCollision ? (
-              <span className="text-xl animate-bounce">🎉</span>
-            ) : (
-              <Calendar className="w-5 h-5 text-slate-400" />
-            )}
-            <div>
-              <span className="text-xs sm:text-sm font-bold text-chalk-white block">
-                {singleTrial.hasCollision
-                  ? `【一致発見！】 ${collisionDates.map((c) => c.dateInfo.label).join("、 ")} が同じ誕生日！`
-                  : `365日カレンダー抽選（参加: ${numPeople}人）`}
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <div className="shrink-0 w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center border border-slate-800">
+              {!singleTrial ? (
+                <Users className="w-4 h-4 text-amber-400" />
+              ) : singleTrial.hasCollision ? (
+                <span className="text-base">🎉</span>
+              ) : (
+                <Calendar className="w-4 h-4 text-slate-400" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-xs sm:text-sm font-bold text-chalk-white truncate block">
+                {!singleTrial
+                  ? `365日カレンダー（参加設定: ${numPeople}人）`
+                  : singleTrial.hasCollision
+                  ? `【一致発見！】 ${
+                      collisionDates.length <= 2
+                        ? collisionDates.map((c) => c.dateInfo.label).join("、 ")
+                        : `${collisionDates[0].dateInfo.label}、 ${collisionDates[1].dateInfo.label} ほか計${collisionDates.length}日`
+                    } が同じ誕生日！`
+                  : `365日カレンダー抽選結果（参加: ${numPeople}人）`}
               </span>
-              <span className="text-xs sm:text-sm text-slate-300 block mt-0.5">
-                {singleTrial.hasCollision
+              <span className="text-xs text-slate-300 block truncate mt-0.5">
+                {!singleTrial
+                  ? `「生徒を教室に集める」ボタンを押して誕生日を配置してみよう！`
+                  : singleTrial.hasCollision
                   ? `たった${numPeople}人集まっただけで、同じ誕生日のペアが出現しました！`
-                  : `今回は偶然被りませんでした。「もう一度抽選」を押してみよう！`}
+                  : `今回は被りませんでした。「もう一度抽選」を押してみよう！`}
               </span>
             </div>
           </div>
 
           <span
             className={`px-2.5 py-1 rounded-full text-xs font-black font-mono shrink-0 ${
-              singleTrial.hasCollision
+              !singleTrial
+                ? "bg-slate-800 text-slate-400 border border-slate-700"
+                : singleTrial.hasCollision
                 ? "bg-pink-500 text-white shadow"
                 : "bg-slate-800 text-slate-400"
             }`}
           >
-            {singleTrial.hasCollision ? "★ 一致あり" : "一致なし"}
+            {!singleTrial ? "未入室" : singleTrial.hasCollision ? "★ 一致あり" : "一致なし"}
           </span>
         </div>
 
-        {/* 12 Months Visual Grid - All in One Screen (No scroll) */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-3 bg-slate-950/90 rounded-2xl border border-chalkboard-border">
+        {/* 12 Months Visual Grid - Uniform 5-row (35 dots) grid per month */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 p-2.5 sm:p-3 bg-slate-950/90 rounded-2xl border border-chalkboard-border shrink-0">
           {MONTHS_DATA.map((m) => {
             // Find if this month has any collisions
             const hasMonthCollision = collisionDates.some(
@@ -188,25 +210,34 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
             return (
               <div
                 key={m.month}
-                className={`p-2 rounded-xl border flex flex-col justify-between transition-all ${
+                className={`p-1.5 sm:p-2 rounded-xl border flex flex-col justify-between transition-colors ${
                   hasMonthCollision
                     ? "bg-pink-950/40 border-pink-500/80 ring-1 ring-pink-400/50"
                     : "bg-slate-900/70 border-slate-800"
                 }`}
               >
-                {/* Month Header */}
-                <div className="flex items-center justify-between pb-1 mb-1 border-b border-slate-800 text-xs font-bold">
-                  <span className={hasMonthCollision ? "text-pink-300 font-black" : "text-amber-300"}>
+                {/* Month Header (Fixed height) */}
+                <div className="flex items-center justify-between pb-1 mb-1 border-b border-slate-800 text-[11px] sm:text-xs font-bold h-5 shrink-0">
+                  <span className={hasMonthCollision ? "text-pink-300 font-bold" : "text-amber-300 font-bold"}>
                     {m.name}
                   </span>
-                  <span className="text-[10px] sm:text-xs text-slate-400 font-mono">
+                  <span className="text-[10px] text-slate-400 font-mono">
                     {m.daysCount}日
                   </span>
                 </div>
 
-                {/* Day Dots Grid (7 cols) */}
+                {/* Day Dots Grid (Always 35 slots = 5 rows x 7 cols so height is fixed) */}
                 <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
-                  {Array.from({ length: m.daysCount }).map((_, dIdx) => {
+                  {Array.from({ length: 35 }).map((_, dIdx) => {
+                    if (dIdx >= m.daysCount) {
+                      return (
+                        <div
+                          key={dIdx}
+                          className="aspect-square w-full rounded-[2px] invisible pointer-events-none"
+                        />
+                      );
+                    }
+
                     const dayIdx = m.startDayIndex + dIdx;
                     const occupants = dayOccupancy.get(dayIdx);
                     const count = occupants ? occupants.length : 0;
@@ -218,15 +249,18 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
                         title={`${m.month}月${dIdx + 1}日: ${
                           count > 0 ? `${count}人 (ID: ${occupants?.join(", ")})` : "空き"
                         }`}
-                        className={`aspect-square rounded-[3px] text-[8px] sm:text-[9px] font-bold flex items-center justify-center transition-all ${
+                        className={`aspect-square w-full rounded-[2px] sm:rounded-[3px] relative overflow-hidden transition-colors ${
                           isCollision
-                            ? "bg-pink-500 text-white ring-1 ring-white scale-125 z-10 animate-bounce"
+                            ? "bg-pink-500 text-white animate-pulse"
                             : count === 1
                             ? "bg-amber-400 text-slate-950"
-                            : "bg-slate-800/40 text-slate-700"
+                            : "bg-slate-800/40 text-transparent"
                         }`}
                       >
-                        {count > 0 ? (isCollision ? "★" : "●") : ""}
+                        {/* Position text absolutely to prevent font line-height from expanding the grid cell */}
+                        <div className="absolute inset-0 flex items-center justify-center leading-none select-none text-[8px] font-black pointer-events-none">
+                          {isCollision ? "★" : count === 1 ? "●" : ""}
+                        </div>
                       </div>
                     );
                   })}
@@ -236,8 +270,8 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
           })}
         </div>
 
-        {/* Legend bar */}
-        <div className="flex items-center justify-around text-xs font-bold text-slate-300 bg-slate-900/60 p-2 rounded-xl border border-slate-800">
+        {/* Legend bar (Fixed height) */}
+        <div className="flex items-center justify-around text-xs font-bold text-slate-300 bg-slate-900/60 p-2 rounded-xl border border-slate-800 h-9 shrink-0">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded bg-slate-800 inline-block" /> 空き日
           </span>
@@ -252,7 +286,9 @@ export const BirthdayViz: React.FC<BirthdayVizProps> = ({ stepIndex }) => {
 
         <ControlPanel
           onRunSingle={handleRunSingle}
-          runSingleText="もう一度抽選"
+          runSingleText={!singleTrial ? `生徒を教室に集める（${numPeople}人）` : "もう一度抽選"}
+          onReset={handleReset}
+          resetText="全員退室"
           customControls={
             <div className="flex flex-col gap-2.5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">

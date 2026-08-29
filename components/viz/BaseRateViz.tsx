@@ -5,18 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   computeBaseRateBreakdown,
   calculateTheoreticalPPV,
+  simulateInspectionBatch,
+  InspectionBatchResult,
 } from "@/lib/simulations/base-rate";
 import { ControlPanel } from "../lesson/ControlPanel";
 import { Activity, ShieldAlert, Sliders, CheckCircle2, AlertTriangle, Sparkles, UserCheck, Zap } from "lucide-react";
 
 interface BaseRateVizProps {
   stepIndex: number;
-}
-
-interface InspectionLog {
-  id: number;
-  isSick: boolean;
-  testResult: "positive" | "negative";
 }
 
 export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
@@ -27,10 +23,14 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
   // Step 1 Interactive State: Test Cats in the Clinic (No limit on count)
   const [sessionStats, setSessionStats] = useState({
     totalTested: 0,
+    tp: 0,
+    fp: 0,
+    tn: 0,
+    fn: 0,
     positives: 0,
     negatives: 0,
   });
-  const [latestInspection, setLatestInspection] = useState<InspectionLog | null>(null);
+  const [latestBatch, setLatestBatch] = useState<InspectionBatchResult | null>(null);
 
   const prevalence = prevalencePct / 100;
   const sensitivity = sensitivityPct / 100;
@@ -45,51 +45,37 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
     });
   }, [prevalence, sensitivity, specificity]);
 
-  // Inspect cats
+  // Inspect cats (1 cat or batch of cats)
   const handleInspect = (count: number = 1) => {
-    let posCount = 0;
-    let negCount = 0;
-    let lastCat: InspectionLog | null = null;
+    const batch = simulateInspectionBatch(count, {
+      prevalence,
+      sensitivity,
+      specificity,
+    });
 
-    for (let i = 0; i < count; i++) {
-      const isSick = Math.random() < prevalence;
-      let testResult: "positive" | "negative";
-
-      if (isSick) {
-        testResult = Math.random() < sensitivity ? "positive" : "negative";
-      } else {
-        testResult = Math.random() < (1 - specificity) ? "positive" : "negative";
-      }
-
-      if (testResult === "positive") {
-        posCount++;
-      } else {
-        negCount++;
-      }
-
-      if (i === count - 1) {
-        lastCat = {
-          id: Math.floor(Math.random() * 10000) + 1,
-          isSick,
-          testResult,
-        };
-      }
-    }
-
+    setLatestBatch(batch);
     setSessionStats((prev) => ({
-      totalTested: prev.totalTested + count,
-      positives: prev.positives + posCount,
-      negatives: prev.negatives + negCount,
+      totalTested: prev.totalTested + batch.count,
+      tp: prev.tp + batch.tp,
+      fp: prev.fp + batch.fp,
+      tn: prev.tn + batch.tn,
+      fn: prev.fn + batch.fn,
+      positives: prev.positives + batch.positives,
+      negatives: prev.negatives + batch.negatives,
     }));
-
-    if (lastCat) {
-      setLatestInspection(lastCat);
-    }
   };
 
   const handleResetStep1 = () => {
-    setSessionStats({ totalTested: 0, positives: 0, negatives: 0 });
-    setLatestInspection(null);
+    setSessionStats({
+      totalTested: 0,
+      tp: 0,
+      fp: 0,
+      tn: 0,
+      fn: 0,
+      positives: 0,
+      negatives: 0,
+    });
+    setLatestBatch(null);
   };
 
   // STEP 0: 直感フェーズ (Intuition) - 黒板の出題カード
@@ -143,10 +129,10 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
     );
   }
 
-  // STEP 1: 体験フェーズ (Experience) - 健康診断センターでの実地検査体験（答えはまだ出さない）
+  // STEP 1: 体験フェーズ (Experience) - 健康診断センターでの実地検査体験（誤診・見逃しとバッチ統計を表示）
   if (stepIndex === 1) {
     return (
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-3.5 w-full">
         {/* Header Banner */}
         <div className="p-3 bg-slate-950/70 border border-chalkboard-border rounded-xl text-xs sm:text-sm font-bold text-slate-300 flex justify-between items-center">
           <span className="flex items-center gap-1.5 text-amber-300 font-bold">
@@ -154,67 +140,189 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
             🏥 ねこ健康診断センター（住民10,000匹）
           </span>
           <span className="text-slate-400 font-mono">
-            検査済み: {sessionStats.totalTested.toLocaleString()} 匹
+            累計検査済み: {sessionStats.totalTested.toLocaleString()} 匹
           </span>
         </div>
 
         {/* Inspection Result Area */}
-        {latestInspection ? (
-          <motion.div
-            key={`${latestInspection.id}-${sessionStats.totalTested}`}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`p-4 rounded-2xl border-2 shadow-xl flex flex-col gap-2.5 transition-all ${
-              latestInspection.testResult === "positive"
-                ? "bg-amber-950/90 border-amber-400 text-amber-100 ring-2 ring-amber-400/50"
-                : "bg-slate-900/90 border-slate-700 text-slate-200"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-slate-950/80 border border-slate-700">
-                ねこ #{latestInspection.id} の検査結果
-              </span>
-              <span
-                className={`text-xs font-black px-3 py-0.5 rounded-full shadow ${
-                  latestInspection.testResult === "positive"
-                    ? "bg-amber-500 text-slate-950 font-black animate-pulse"
-                    : "bg-emerald-600 text-white"
-                }`}
-              >
-                {latestInspection.testResult === "positive" ? "⚠️ 陽性判定 (＋)" : "🟢 陰性判定 (ー)"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 py-1">
-              <span className="text-3xl sm:text-4xl">
-                {latestInspection.testResult === "positive" ? "🚨" : "😺"}
-              </span>
-              <div>
-                <div className="text-xs sm:text-sm font-black">
-                  {latestInspection.testResult === "positive"
-                    ? "【判定結果】 陽性反応が出ました！"
-                    : "【判定結果】 陰性（正常）でした"}
-                </div>
-                <div className="text-xs text-slate-300 mt-0.5">
-                  {latestInspection.testResult === "positive" ? (
-                    latestInspection.isSick ? (
-                      <span className="text-red-300 font-bold">
-                        カルテ確認: 🐱 本当に病気にかかっていました（真陽性）
-                      </span>
-                    ) : (
-                      <span className="text-amber-200 font-bold">
-                        カルテ確認: 😺 実は健康な猫でした！（1%の誤診で陽性が出たようです）
-                      </span>
-                    )
-                  ) : (
-                    <span className="text-emerald-300">
-                      カルテ確認: 😺 健康な猫です（真陰性）
-                    </span>
-                  )}
+        {latestBatch ? (
+          latestBatch.count === 1 && latestBatch.lastCat ? (
+            /* Single Cat Result Card */
+            <motion.div
+              key={`${latestBatch.lastCat.id}-${sessionStats.totalTested}`}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`p-4 rounded-2xl border-2 shadow-xl flex flex-col gap-2.5 transition-all ${
+                latestBatch.lastCat.category === "TP"
+                  ? "bg-red-950/90 border-red-500 text-red-100 ring-2 ring-red-500/40"
+                  : latestBatch.lastCat.category === "FP"
+                  ? "bg-amber-950/90 border-amber-400 text-amber-100 ring-2 ring-amber-400/50"
+                  : latestBatch.lastCat.category === "FN"
+                  ? "bg-slate-900/90 border-red-400 text-red-200 ring-2 ring-red-400/30"
+                  : "bg-slate-900/90 border-slate-700 text-slate-200"
+              }`}
+            >
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-slate-950/80 border border-slate-700">
+                  ねこ #{latestBatch.lastCat.id} の検査結果
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-xs font-black px-2.5 py-0.5 rounded-full shadow ${
+                      latestBatch.lastCat.testResult === "positive"
+                        ? "bg-amber-500 text-slate-950 font-black animate-pulse"
+                        : "bg-emerald-600 text-white"
+                    }`}
+                  >
+                    {latestBatch.lastCat.testResult === "positive" ? "⚠️ 陽性判定 (＋)" : "🟢 陰性判定 (ー)"}
+                  </span>
+                  <span
+                    className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      latestBatch.lastCat.category === "FP"
+                        ? "bg-amber-400/20 text-amber-300 border border-amber-400/50 font-black"
+                        : latestBatch.lastCat.category === "FN"
+                        ? "bg-red-400/20 text-red-300 border border-red-400/50 font-black"
+                        : latestBatch.lastCat.category === "TP"
+                        ? "bg-red-500/20 text-red-300 border border-red-500/40 font-bold"
+                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold"
+                    }`}
+                  >
+                    {latestBatch.lastCat.category === "TP"
+                      ? "正診（真陽性）"
+                      : latestBatch.lastCat.category === "FP"
+                      ? "⚠️ 誤診（偽陽性）"
+                      : latestBatch.lastCat.category === "TN"
+                      ? "正診（真陰性）"
+                      : "🚨 見逃し（偽陰性）"}
+                  </span>
                 </div>
               </div>
-            </div>
-          </motion.div>
+
+              <div className="flex items-center gap-3 py-1">
+                <span className="text-3xl sm:text-4xl">
+                  {latestBatch.lastCat.category === "TP"
+                    ? "🚨"
+                    : latestBatch.lastCat.category === "FP"
+                    ? "⚠️"
+                    : latestBatch.lastCat.category === "FN"
+                    ? "😿"
+                    : "😺"}
+                </span>
+                <div>
+                  <div className="text-xs sm:text-sm font-black">
+                    {latestBatch.lastCat.testResult === "positive"
+                      ? "【判定結果】 陽性反応が出ました！"
+                      : "【判定結果】 陰性（正常）と判定されました"}
+                  </div>
+                  <div className="text-xs text-slate-300 mt-1">
+                    {latestBatch.lastCat.category === "TP" && (
+                      <span className="text-red-300 font-bold">
+                        🔴 カルテ確認: 🐱 本当に病気にかかっていました！（感度99%で正しく陽性と発見！）
+                      </span>
+                    )}
+                    {latestBatch.lastCat.category === "FP" && (
+                      <span className="text-amber-200 font-bold">
+                        ⚠️ カルテ確認: 😺 実は健康な猫でした！（特異度99%ですが、1%の確率で誤診が発生！）
+                      </span>
+                    )}
+                    {latestBatch.lastCat.category === "TN" && (
+                      <span className="text-emerald-300 font-bold">
+                        🟢 カルテ確認: 😺 健康な猫です（特異度99%で正しく陰性と判定）
+                      </span>
+                    )}
+                    {latestBatch.lastCat.category === "FN" && (
+                      <span className="text-red-300 font-bold">
+                        🚨 カルテ確認: 🐱 実は病気にかかっていました！（感度99%ですが、1%の確率で見逃しが発生！）
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            /* Multiple Cats Batch Results Summary */
+            <motion.div
+              key={`batch-${latestBatch.count}-${sessionStats.totalTested}`}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-3.5 sm:p-4 rounded-2xl bg-slate-900/95 border-2 border-chalkboard-border shadow-xl flex flex-col gap-3"
+            >
+              {/* Batch Header */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2 flex-wrap gap-2">
+                <span className="text-xs sm:text-sm font-bold text-chalk-white flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  今回の検査統計（{latestBatch.count.toLocaleString()}匹を一括検査）
+                </span>
+                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                  陽性 {latestBatch.positives} 匹 / 陰性 {latestBatch.negatives.toLocaleString()} 匹
+                </span>
+              </div>
+
+              {/* 4 Quadrants of this batch */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                {/* TP */}
+                <div className="p-2 rounded-xl bg-red-950/40 border border-red-500/50">
+                  <span className="text-[10px] text-red-300 font-bold block">🔴 真陽性（正診）</span>
+                  <span className="text-sm sm:text-base font-black font-mono text-red-200">
+                    {latestBatch.tp} 匹
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">病気＆陽性</span>
+                </div>
+
+                {/* FP - 誤診 */}
+                <div className="p-2 rounded-xl bg-amber-950/60 border border-amber-400 ring-1 ring-amber-400/40">
+                  <span className="text-[10px] text-amber-300 font-black block">⚠️ 偽陽性（誤診！）</span>
+                  <span className="text-sm sm:text-base font-black font-mono text-amber-300">
+                    {latestBatch.fp} 匹
+                  </span>
+                  <span className="text-[10px] text-amber-200/80 block mt-0.5">健康なのに陽性</span>
+                </div>
+
+                {/* TN */}
+                <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-800/40">
+                  <span className="text-[10px] text-emerald-300 font-bold block">🟢 真陰性（正診）</span>
+                  <span className="text-sm sm:text-base font-black font-mono text-emerald-300">
+                    {latestBatch.tn.toLocaleString()} 匹
+                  </span>
+                  <span className="text-[10px] text-slate-400 block mt-0.5">健康＆陰性</span>
+                </div>
+
+                {/* FN - 見逃し */}
+                <div className="p-2 rounded-xl bg-slate-900 border border-slate-700">
+                  <span className="text-[10px] text-slate-400 font-bold block">🚨 偽陰性（見逃し！）</span>
+                  <span className="text-sm sm:text-base font-black font-mono text-slate-300">
+                    {latestBatch.fn} 匹
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5">病気なのに陰性</span>
+                </div>
+              </div>
+
+              {/* Takeaway message for this batch */}
+              <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 leading-relaxed">
+                {latestBatch.positives > 0 ? (
+                  <div>
+                    <span className="text-amber-300 font-bold">
+                      💡 今回の陽性判定（計 {latestBatch.positives}匹）のカルテ内訳：
+                    </span>
+                    <p className="mt-0.5">
+                      本当に病気だったのは <strong className="text-red-400">{latestBatch.tp}匹</strong>（
+                      {((latestBatch.tp / latestBatch.positives) * 100).toFixed(1)}%）、
+                      健康なのに陽性と判定された誤診は <strong className="text-amber-300">{latestBatch.fp}匹</strong> でした！
+                    </p>
+                    {latestBatch.fp > latestBatch.tp && (
+                      <p className="text-amber-200 mt-0.5 font-semibold">
+                        👉 精度99%（誤診1%）でも、健康な猫が圧倒的多数のため、誤診の数が本物の病気猫を上回ります！
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-slate-300">
+                    💡 今回の {latestBatch.count.toLocaleString()}匹 中には陽性判定の猫はいませんでした（健康な猫 {latestBatch.tn.toLocaleString()}匹 が正しく陰性と判定）。
+                  </span>
+                )}
+              </div>
+            </motion.div>
+          )
         ) : (
           <div className="p-6 rounded-2xl bg-slate-900/60 border-2 border-dashed border-slate-700 text-center flex flex-col items-center gap-2">
             <span className="text-4xl">🏥</span>
@@ -230,21 +338,27 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
         {/* Live Counters */}
         <div className="grid grid-cols-3 gap-2 p-3 bg-slate-950/80 rounded-2xl border border-chalkboard-border text-center">
           <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-            <span className="text-xs text-slate-400 block">総検査数</span>
+            <span className="text-xs text-slate-400 block">累計検査数</span>
             <span className="text-base sm:text-lg font-black font-mono text-slate-200">
               {sessionStats.totalTested.toLocaleString()} 匹
             </span>
           </div>
           <div className="p-2 rounded-xl bg-amber-950/40 border border-amber-500/50">
-            <span className="text-xs text-amber-300 font-bold block">陽性判定 (＋)</span>
+            <span className="text-xs text-amber-300 font-bold block">累計 陽性判定</span>
             <span className="text-base sm:text-lg font-black font-mono text-amber-400">
               {sessionStats.positives.toLocaleString()} 匹
             </span>
+            <span className="text-[10px] text-amber-200/70 block font-mono">
+              (真病気: {sessionStats.tp} / 誤診: {sessionStats.fp})
+            </span>
           </div>
           <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-800/40">
-            <span className="text-xs text-emerald-300 block">陰性判定 (ー)</span>
+            <span className="text-xs text-emerald-300 block">累計 陰性判定</span>
             <span className="text-base sm:text-lg font-black font-mono text-emerald-400">
               {sessionStats.negatives.toLocaleString()} 匹
+            </span>
+            <span className="text-[10px] text-emerald-200/70 block font-mono">
+              (健康: {sessionStats.tn.toLocaleString()} / 見逃し: {sessionStats.fn})
             </span>
           </div>
         </div>
@@ -259,24 +373,24 @@ export const BaseRateViz: React.FC<BaseRateVizProps> = ({ stepIndex }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleInspect(10)}
-                className="flex-1 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-chalk-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 shadow"
+                className="flex-1 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-chalk-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 shadow transition-colors"
               >
                 <Zap className="w-3.5 h-3.5 text-chalk-yellow" />
                 <span>10匹検査</span>
               </button>
               <button
                 onClick={() => handleInspect(100)}
-                className="flex-1 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-chalk-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 shadow"
+                className="flex-1 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-chalk-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 shadow transition-colors"
               >
                 <Zap className="w-3.5 h-3.5 text-chalk-yellow" />
                 <span>100匹検査</span>
               </button>
               <button
                 onClick={() => handleInspect(1000)}
-                className="flex-1 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-chalk-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 shadow"
+                className="flex-1 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-98 text-chalk-white border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-1 shadow transition-colors"
               >
                 <Zap className="w-3.5 h-3.5 text-chalk-yellow" />
-                <span>1000匹検査</span>
+                <span>1,000匹検査</span>
               </button>
             </div>
           }
