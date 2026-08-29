@@ -13,6 +13,16 @@ interface MontyHallVizProps {
   stepIndex: number;
 }
 
+function pickRandomDoorsToReveal(pool: number[], count: number): number[] {
+  const p = [...pool];
+  const revealed: number[] = [];
+  while (revealed.length < count && p.length > 0) {
+    const idx = Math.floor(Math.random() * p.length);
+    revealed.push(p.splice(idx, 1)[0]);
+  }
+  return revealed;
+}
+
 export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
   const [numDoors, setNumDoors] = useState(3);
   const [carDoor, setCarDoor] = useState<number>(1);
@@ -41,12 +51,7 @@ export const MontyHallViz: React.FC<MontyHallVizProps> = ({ stepIndex }) => {
           availableToReveal.push(i);
         }
       }
-      const pool = [...availableToReveal];
-      const revealed: number[] = [];
-      while (revealed.length < numDoors - 2 && pool.length > 0) {
-        const idx = Math.floor(Math.random() * pool.length);
-        revealed.push(pool.splice(idx, 1)[0]);
-      }
+      const revealed = pickRandomDoorsToReveal(availableToReveal, numDoors - 2);
       setRevealedDoors(revealed);
     } else if (!revealedDoors.includes(doorIdx)) {
       // Phase 2: Final choice (switch or stay)

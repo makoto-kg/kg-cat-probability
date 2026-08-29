@@ -4,9 +4,9 @@ import { TOPICS } from "@/lib/topics";
 import { TopicView } from "@/components/lesson/TopicView";
 
 interface TopicPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export function generateStaticParams() {
@@ -15,8 +15,9 @@ export function generateStaticParams() {
   }));
 }
 
-export default function TopicPage({ params }: TopicPageProps) {
-  const topic = TOPICS.find((t) => t.slug === params.slug);
+export default async function TopicPage({ params }: TopicPageProps) {
+  const { slug } = await params;
+  const topic = TOPICS.find((t) => t.slug === slug);
 
   if (!topic) {
     notFound();

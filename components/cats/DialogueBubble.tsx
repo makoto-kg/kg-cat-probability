@@ -27,38 +27,41 @@ export const DialogueBubble: React.FC<DialogueBubbleProps> = ({
 }) => {
   const [displayedLength, setDisplayedLength] = useState(0);
   const [isDone, setIsDone] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [prevText, setPrevText] = useState(text);
 
-  // Reset when text changes
-  useEffect(() => {
+  // Reset states when text changes
+  if (prevText !== text) {
+    setPrevText(text);
     setDisplayedLength(0);
-    setIsDone(false);
+    setIsDone(!text);
+  }
 
-    if (!text) {
-      setIsDone(true);
+  // Typewriter effect timer
+  useEffect(() => {
+    if (!text || isDone) {
       return;
     }
 
-    let current = 0;
-    timerRef.current = setInterval(() => {
-      current++;
-      setDisplayedLength(current);
-      if (current >= text.length) {
-        if (timerRef.current) clearInterval(timerRef.current);
-        setIsDone(true);
-        onComplete?.();
-      }
+    const timer = setInterval(() => {
+      setDisplayedLength((current) => {
+        const next = current + 1;
+        if (next >= text.length) {
+          setIsDone(true);
+          onComplete?.();
+          clearInterval(timer);
+        }
+        return next;
+      });
     }, speedMs);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      clearInterval(timer);
     };
-  }, [text, speedMs, onComplete]);
+  }, [text, isDone, speedMs, onComplete]);
 
   // Click to reveal all text instantly
   const handleBubbleClick = () => {
     if (!isDone) {
-      if (timerRef.current) clearInterval(timerRef.current);
       setDisplayedLength(text.length);
       setIsDone(true);
       onComplete?.();
