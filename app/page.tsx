@@ -130,10 +130,10 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-chalkboard-border/60 bg-slate-950/90 py-6 px-4 text-center text-xs text-slate-500">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 猫と学ぶ確率パラドックス — 完全静的SPA</p>
+          <p>© 2026 猫と学ぶ確率パラドックス — MONTE CATLO</p>
           <p className="flex items-center gap-1 text-slate-400">
             <Compass className="w-3.5 h-3.5 text-amber-400" />
-            シミュレーションはすべて純粋関数＆クライアント完結
+            KG Globulus Lab.
           </p>
         </div>
       </footer>
